@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<!DOCTYPE project>
+<project name="SBGoogleSheets" default="none" xmlns:current="ant:current">
+
+  <!--+ ==============================================================================================================
+      | Public targets.
+      +-->
+  
+  
+  <target name="zip-source" depends="init" description="zip all main and test source">
+    
+  	<mkdir dir="${targetdir}" />
+  	<zip destfile="${targetdir}/SBGoogleSheets-source.zip"
+  	     basedir="${srcdir}"
+  	     includes="main/scala/** main/java/** main/resources/** test/scala/** test/java/** test/resources/** make/**"
+  	     excludes="**/todo.html"/>
+  </target>
+	
+  <target name="zip-shell" depends="init" description="zip the project shell files, pom etc">
+    
+  	<mkdir dir="${targetdir}" />
+  	<zip destfile="${targetdir}/SBGoogleSheets-shell.zip"
+  	     basedir="${projdir}"
+  	     includes="pom.xml .classpath .project .settings/** .externalToolBuilders/** "/>
+  </target>
+  <!--+ ==============================================================================================================
+      | Protected targets
+      +-->
+  
+  <target name="none" depends="init" description="passive default. Just initializes" >
+    
+    <echoproperties />
+    
+  </target>
+  
+ 
+  <target name="init" >
+  	<property name="projdir" value="${basedir}/../.." />
+  	<property name="targetdir" value="${projdir}/target/" />
+  	<property name="srcdir" value="${projdir}/src/" />
+  </target>
+  
+     
+</project>
