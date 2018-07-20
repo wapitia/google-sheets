@@ -38,11 +38,4 @@
 		<nature>org.scala-ide.sdt.core.scalanature</nature>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 	</natures>
-	<linkedResources>
-		<link>
-			<name>SBGoogleSheets-source</name>
-			<type>2</type>
-			<location>C:/Users/Corey/Downloads/SBGoogleSheets-source</location>
-		</link>
-	</linkedResources>
 </projectDescription>
