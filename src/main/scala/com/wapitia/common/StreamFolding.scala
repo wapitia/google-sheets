@@ -6,6 +6,10 @@ package common
  *  all of its iterators are exhausted.  The ordering of the iterator elements
  *  is provided by an implicit parameter.
  *
+ *  @note that the comparison is done on just the heads of these iterators,
+ *  and if the elements in each iterator are not themselves sorted,
+ *  then the output of this iterator will not be sorted either.
+ *
  *  @tparam A common type of all iterators, whose elements will be compared
  *            against each other.
  *  @constructor makes a new `Iterator[A]` wrapping the given sequence
@@ -14,13 +18,14 @@ package common
  *  @param iters collection of iterators, each of which will be emptied
  *               as this stream folding iterator steps through them.
  *  @param tComp implicit Ordering used to compare the heads of the iterators.
- *  @returns Iterator[A] delivering each element of the given iterators
+ *  @return Iterator[A] delivering each element of the given iterators
  *               from `iter` in turn according to the implicit ordering.
  */
 class StreamFolding[A](iters: Seq[Iterator[A]])(implicit tComp: Ordering[A]) extends Iterator[A] {
 
-  /** remIterList is variable because the list is reduced by function
-   *  [[next()]] when one of its iterator elements becomes exhausted.
+  /** remIterList is variable because the list is replaced by function
+   *  [[next()]] as recent iterators bubble to the top and as iterators
+   *  become exhausted.
    *  Each of the incoming iterators is wrapped as a BufferedIterator since
    *  we'll want to peek at the heads of the iterators without popping them.
    */
@@ -42,39 +47,37 @@ class StreamFolding[A](iters: Seq[Iterator[A]])(implicit tComp: Ordering[A]) ext
    *  iterators become exhausted.
    */
   override def next(): A = {
-    val (a,r) = remIterList match {
-      case h :: t => nextOfCandidate(h, t, Nil)
-      case _      => throw new NoSuchElementException("next on empty StreamFolding")
-    }
-    this.remIterList = r
+    // List constructor will fail if no iterators to draw from
+    val hIter :: tIter =  nextR(remIterList, Nil)
+    val res = hIter.next()
+    this.remIterList = if (hIter.isEmpty) tIter else hIter :: tIter
     assert(invariance)
-    a
+    res
   }
 
   /** Bubble to the top the iterator having the lowest item among the heads
-   *  of all iterators, popping and returning the lowest head item and
-   *  the new replacement list of iterators.
+   *  of all iterators returning the resultant new List.
    *  The lowest item is determined by the `tComp` Ordering
    */
-  def nextOfCandidate(
-    best: BufferedIterator[A],
+  def nextR(
     rest: List[BufferedIterator[A]],
-    accum: List[BufferedIterator[A]]) : (A,List[BufferedIterator[A]]) =
+    accum: List[BufferedIterator[A]]) : List[BufferedIterator[A]] =
     rest match {
-      case h :: t  =>
-        if (tComp.compare(best.head, h.head) <= 0)
-          // best.head < rest.head, so best is still best
-          nextOfCandidate(best, t, h :: accum)
+      // list has multiple items, compare the heads of the top two iterators
+      case h1 :: h2 :: t  =>
+        if (tComp.compare(h1.head, h2.head) <= 0)
+          // first <= second, so first survives and second is accumulated
+          nextR(h1 :: t, h2 :: accum)
         else
-          // best.head > rest.head so rest.head is the new best
-          nextOfCandidate(h, t, best :: accum)
-      case Nil => {
-        // ran to the end, best is the one.
-        // pop best's value and add best back in only if it still isn't empty
-        val r = best.next()
-        var nl = if (best.hasNext) best :: accum else accum
-        (r, nl)
-      }
+          // first > second, so second survives and first is accumulated
+          nextR(h2 :: t, h1 :: accum)
+
+      // list has just one iterator left, having survived all comparisons
+      case h :: Nil => h :: accum
+
+      // only ever gets here if originally invoked with Nil, which shouldn't
+      // happen, but just return accum, which should also be Nil
+      case Nil => accum
     }
 
 }
