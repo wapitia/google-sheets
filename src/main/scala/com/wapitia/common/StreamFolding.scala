@@ -23,62 +23,40 @@ package common
  */
 class StreamFolding[A](iters: Seq[Iterator[A]])(implicit tComp: Ordering[A]) extends Iterator[A] {
 
-  /** remIterList is variable because the list is replaced by function
+  type BI = BufferedIterator[A]
+
+  /** remIters is variable because the list is replaced by function
    *  [[next()]] as recent iterators bubble to the top and as iterators
    *  become exhausted.
-   *  Each of the incoming iterators is wrapped as a BufferedIterator since
-   *  we'll want to peek at the heads of the iterators without popping them.
+   *  All of the incoming iterators from `iter` are wrapped as
+   *  `BufferedIterator`s (BI's) since we'll want to peek at the heads of the
+   *  iterators without popping them.
    */
-  private var remIterList: List[BufferedIterator[A]] =
-    iters.map(_.buffered).filter(_.hasNext).toList
+  private var remIters: List[BI] = iters.map(_.buffered).filter(_.hasNext).toList
 
-  /** INVARIANCE REQUIREMENT: None of the BufferedIterators in remIterList are empty. */
-  private def invariance = !remIterList.exists(_.isEmpty)
-  assert(invariance)
+  /** INVARIANCE REQUIREMENT: None of the BI's in `remIters` are empty. */
+  private def invariance = ! remIters.exists(_.isEmpty)
+  assert(invariance)  // going in
 
-  /** There is a next item iff there are any remaining `BufferedIterators`
-   *  in `remIterList` since any iterators in that collection are non-empty
+  /** There is a next item only when there are any remaining `Iterators`
+   *  in `remIters` since any iterators in that collection are non-empty
    *  according to the invariance requirement.
    */
-  override def hasNext: Boolean = ! remIterList.isEmpty
+  override def hasNext: Boolean = ! remIters.isEmpty
 
-  /** Get the next iteration element from it's list of remaining iterators.
+  /** Get the next iteration element from its list of remaining iterators.
    *  This refreshes the remaining list of iterators, which is reduced as
    *  iterators become exhausted.
    */
   override def next(): A = {
-    // List constructor will fail if no iterators to draw from
-    val hIter :: tIter =  nextR(remIterList, Nil)
+    // List constructor will fail if no BI's remaining (remIters is empty)
+    val hIter :: tIter = bubbleUp[BI](remIters, Nil,
+      (i1: BI, i2: BI) => tComp.compare(i1.head, i2.head))
     val res = hIter.next()
-    this.remIterList = if (hIter.isEmpty) tIter else hIter :: tIter
+    this.remIters = if (hIter.isEmpty) tIter else hIter :: tIter
     assert(invariance)
     res
   }
-
-  /** Bubble to the top the iterator having the lowest item among the heads
-   *  of all iterators returning the resultant new List.
-   *  The lowest item is determined by the `tComp` Ordering
-   */
-  def nextR(
-    rest: List[BufferedIterator[A]],
-    accum: List[BufferedIterator[A]]) : List[BufferedIterator[A]] =
-    rest match {
-      // list has multiple items, compare the heads of the top two iterators
-      case h1 :: h2 :: t  =>
-        if (tComp.compare(h1.head, h2.head) <= 0)
-          // first <= second, so first survives and second is accumulated
-          nextR(h1 :: t, h2 :: accum)
-        else
-          // first > second, so second survives and first is accumulated
-          nextR(h2 :: t, h1 :: accum)
-
-      // list has just one iterator left, having survived all comparisons
-      case h :: Nil => h :: accum
-
-      // only ever gets here if originally invoked with Nil, which shouldn't
-      // happen, but just return accum, which should also be Nil
-      case Nil => accum
-    }
 
 }
 
