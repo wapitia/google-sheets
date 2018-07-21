@@ -45,7 +45,7 @@ package object common {
         // first > second, so second survives and first is accumulated
         bubbleUp(h2 :: t, h1 :: accum, comp)
 
-    // list has just one element, having survived all comparisons, if any
+    // list has just one element, having survived all comparisons, if any.
     // it's returned as the top of the accumulated list
     case h :: Nil => h :: accum
 

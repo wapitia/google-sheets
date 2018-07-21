@@ -37,7 +37,7 @@ class FoldingIterator[A](iters: Seq[Iterator[A]])(implicit tComp: Ordering[A]) e
 
   /** INVARIANCE REQUIREMENT: None of the BI's in `remIters` are empty. */
   private def invariance = ! remIters.exists(_.isEmpty)
-  assert(invariance)  // going in
+  assert(invariance)  // initial condition going in
 
   /** There is a next item only when there are any remaining `Iterators`
    *  in `remIters` since any iterators in that collection are non-empty
@@ -51,11 +51,11 @@ class FoldingIterator[A](iters: Seq[Iterator[A]])(implicit tComp: Ordering[A]) e
    */
   override def next(): A = {
     // List constructor will fail if no BI's remaining (remIters is empty)
-    val hIter :: tIter =
+    val top :: rest =
       bubbleUp[BI](remIters, (i: BI, j: BI) => tComp.compare(i.head, j.head))
-    val res = hIter.next()
+    val res = top.next()
     // drop the top iterator if it's now empty
-    this.remIters = if (hIter.isEmpty) tIter else hIter :: tIter
+    this.remIters = if (top.isEmpty) rest else top :: rest
     assert(invariance)
     res
   }
