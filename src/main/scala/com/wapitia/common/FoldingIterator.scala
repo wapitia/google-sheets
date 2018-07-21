@@ -2,8 +2,8 @@ package com.wapitia
 package common
 
 /** Combine a sequence of iterators into one grand iterator.
- *  The `FoldingIterator` picks the "lowest" head among its set of iterators 
- *  until all of its "child" iterators are exhausted.  
+ *  The `FoldingIterator` picks the "lowest" head among its set of iterators
+ *  until all of its "child" iterators are exhausted.
  *  The ordering of the elements is provided by an implicit parameter.
  *
  *  @note that the comparison is done on just the heads of these iterators,
@@ -25,7 +25,8 @@ class FoldingIterator[A](iters: Seq[Iterator[A]])(implicit tComp: Ordering[A]) e
 
   type BI = BufferedIterator[A]
 
-  /** remIters is variable because the list is replaced by function
+  /** Remaining list of populated iterators from which to draw.
+   *  remIters is variable because the list is replaced by function
    *  [[next()]] as recent iterators bubble to the top and as iterators
    *  become exhausted.
    *  All of the incoming iterators from `iter` are wrapped as
@@ -50,9 +51,10 @@ class FoldingIterator[A](iters: Seq[Iterator[A]])(implicit tComp: Ordering[A]) e
    */
   override def next(): A = {
     // List constructor will fail if no BI's remaining (remIters is empty)
-    val hIter :: tIter = bubbleUp[BI](remIters, Nil,
-      (i1: BI, i2: BI) => tComp.compare(i1.head, i2.head))
+    val hIter :: tIter =
+      bubbleUp[BI](remIters, (i: BI, j: BI) => tComp.compare(i.head, j.head))
     val res = hIter.next()
+    // drop the top iterator if it's now empty
     this.remIters = if (hIter.isEmpty) tIter else hIter :: tIter
     assert(invariance)
     res
