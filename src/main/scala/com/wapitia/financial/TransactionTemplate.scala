@@ -137,9 +137,9 @@ object TransactionTemplate {
       val (actAmount: BigDecimal, actSrc: Account, actTarget: Account) =
         if (ensurePositive && amount < BigDecimal(0))
           // negate the amount and switch source and target accounts
-          ( -amount, target, source )
+          (-amount, target, source )
         else
-          ( amount, source, target)
+          (amount, source, target)
 
       TransactionTemplate(
         item = itemOpt.getOrElse(throw new RuntimeException("Missing Item Name")),
