@@ -24,7 +24,7 @@ object TestStreamFolding extends App {
   }
 
   def isTester(foldLists: List[Stream[Int]], exp : List[Int]) {
-    val re : Stream[Int] = StreamFolding.interleave[Int](foldLists)
+    val re : Stream[Int] = FoldingIterator.interleave[Int](foldLists)
     val relist = re.toList
     assert(relist == exp)
   }

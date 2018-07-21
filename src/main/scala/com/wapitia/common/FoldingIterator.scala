@@ -2,9 +2,9 @@ package com.wapitia
 package common
 
 /** Combine a sequence of iterators into one grand iterator.
- *  The iterator picks the "lowest" head among its set of iterators until
- *  all of its iterators are exhausted.  The ordering of the iterator elements
- *  is provided by an implicit parameter.
+ *  The `FoldingIterator` picks the "lowest" head among its set of iterators 
+ *  until all of its "child" iterators are exhausted.  
+ *  The ordering of the elements is provided by an implicit parameter.
  *
  *  @note that the comparison is done on just the heads of these iterators,
  *  and if the elements in each iterator are not themselves sorted,
@@ -21,7 +21,7 @@ package common
  *  @return Iterator[A] delivering each element of the given iterators
  *               from `iter` in turn according to the implicit ordering.
  */
-class StreamFolding[A](iters: Seq[Iterator[A]])(implicit tComp: Ordering[A]) extends Iterator[A] {
+class FoldingIterator[A](iters: Seq[Iterator[A]])(implicit tComp: Ordering[A]) extends Iterator[A] {
 
   type BI = BufferedIterator[A]
 
@@ -60,11 +60,11 @@ class StreamFolding[A](iters: Seq[Iterator[A]])(implicit tComp: Ordering[A]) ext
 
 }
 
-object StreamFolding {
+object FoldingIterator {
 
   /** Interleave a sequence of iterators producing a combined iterator. */
   def interleave[A](seq: Seq[Iterator[A]])(implicit tComp: Ordering[A]): Iterator[A] =
-    new StreamFolding(seq)(tComp)
+    new FoldingIterator(seq)(tComp)
 
   /** Interleave a sequence of streams producing a combined stream. */
   def interleave[A](seq: Seq[Stream[A]])(implicit tComp: Ordering[A]): Stream[A] =
