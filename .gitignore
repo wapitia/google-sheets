@@ -1,4 +1,7 @@
-/target/
+target/
 .cache-main
 .cache-tests
-/.classpath
+.classpath*
+.project*
+bin/
+.settings/
