@@ -46,6 +46,37 @@ trait LabelledRowMarshaller[A] {
   
 }
 
+/** 
+ *  @tparam A finished row object or builder/marshaller 
+ *            of such row objects
+ */
+// WIP CDM
+trait LabelledRowMarshallerX[A] {
+
+  def cellMarshaller: LabelledCellMarshallers
+  
+  def build(): A
+  var rowObjectMarshallers: Map[String, (_, LabelledRowMarshaller[A]) => _] = Map()
+  
+  import LabelledRowMarshaller._
+  
+  def addRowItemMarshaller[MT <: Any](key: String, t: (MT, LabelledRowMarshaller[A]) => _): Unit = {
+    rowObjectMarshallers += (key -> t)
+  }
+  
+  def set[C](key: String, rawvalue: AnyRef): Unit = {
+    val marshaler = cellMarshaller.getMarshal[C](key)
+    
+    if (!marshaler.isNull(rawvalue)) {
+      val mval: C = marshaler.unmarshal(rawvalue)
+  
+      val f: (C => Unit) = rowObjectMarshallers.getOrElse(key, NOOP _).asInstanceOf[C => Unit]
+      f(mval)
+    }
+  }
+  
+}
+
 abstract class EmptyLabelledRowMarshaller[A] extends LabelledRowMarshaller[A] {
   val cellMarshaller: LabelledCellMarshallers = new LabelledCellMarshallers
   

@@ -180,6 +180,12 @@ class GoogleSheetsAccess(appName: String, scopes: List[String]) {
 
 object GoogleSheetsAccess {
   
+  def apply(appName: String, scopes: List[String]): GoogleSheetsAccess = 
+    new GoogleSheetsAccess(appName, scopes)
+  
+  def readOnlyAccess(appName: String): GoogleSheetsAccess = 
+    new GoogleSheetsAccess(appName, ReadOnlyScopes)
+  
   /**
    * Global instance of the scopes required by this quickstart. If modifying these
    * scopes, delete your previously saved credentials/ folder.

@@ -1,5 +1,5 @@
 package com.wapitia
-package spreadsheet
+package spreadsheet.marshal
 
 /**
  * A sheet reader converts a spreadsheet of "raw", unformatted cell values 
@@ -23,8 +23,8 @@ package spreadsheet
 @FunctionalInterface
 trait SheetReader[A] {
 
-  /** Parse a list of rows of lists of cells into a list of `A` objects,
+  /** Read a list of rows of lists of cells into a list of `A` objects,
    *  where `A` represents the marshalled combined record of one row.
    */
-  def parse(rawsheet: List[List[AnyRef]]): List[A]
+  def read(rawsheet: List[List[AnyRef]]): List[A]
 }

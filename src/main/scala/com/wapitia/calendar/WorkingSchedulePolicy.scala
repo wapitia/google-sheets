@@ -5,7 +5,9 @@ import com.wapitia.common.{Enum,EValue}
 
 /** Policy of how to treat the condition where a particular day fails its test.
  *  
+ *  {{{
  *  enum WorkingSchedulePolicy {SkipDay, NextAvailableDayNoSkip, NextAvailableDaySkipOnOverlap}
+ *  }}}
  */
 sealed trait WorkingSchedulePolicy extends WorkingSchedulePolicy.Value with EValue[WorkingSchedulePolicy]
 

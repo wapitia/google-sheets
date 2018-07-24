@@ -40,6 +40,10 @@ case class TransactionTemplate(
 
 object TransactionTemplate {
 
+  import com.wapitia.financial.marshal.TransactionTemplateMarshaller
+  
+  def marshaller: TransactionTemplateMarshaller = new TransactionTemplateMarshaller
+
   /** Constructs a TransactionTemplate instance using the builder patter. */
   def builder() = new Builder(
     itemOpt = None,
@@ -158,3 +162,4 @@ object TransactionTemplate {
 
   }
 }
+
