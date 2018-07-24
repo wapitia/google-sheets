@@ -13,6 +13,9 @@ budgets, charts graphs, etc.
 The financial stuff is work-in-progress, and once baked will likely be promoted
 to another repository such as *bergen-budget*.
 
+Also squirrelled away in here is the start of the rail-baron sandbox study,
+which will be formalized and extracted sometime.
+
 *Corey Morgan*
 WapitiaSoft
 July 2018
