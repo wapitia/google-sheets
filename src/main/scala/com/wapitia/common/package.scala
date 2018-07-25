@@ -13,7 +13,7 @@ package object common {
   def canonicalList[A](seq: A*)(implicit arg0: math.Ordering[A], m: scala.reflect.ClassTag[A]): List[A] = {
     val array: Array[A] = seq.toArray
     util.Sorting.quickSort(array)
-    array.foldRight(List.empty[A]) {
+    array.foldRight(List[A]()) {
       case (item, acc@(h :: t)) if item == h => acc         // ignore duplicates
       case (item, acc)                       => item :: acc // otherwise include the item. acc may be Nil.
     }
@@ -29,9 +29,10 @@ package object common {
   /** Bubble to the top the lowest element according to the
    *  given `comp` comparator function.
    */
-  def bubbleUp[E](list: List[E], comp: (E,E) => Int): List[E] = {
+  def bubbleUp[A](list: List[A], comp: (A,A) => Int): List[A] = {
 
-    def recur(rest: List[E], accum: List[E]): List[E] =
+    // rest.foldRight(L
+    def recur(rest: List[A], accum: List[A]): List[A] =
       rest match {
         // list has multiple items, compare the top two
         // first <= second, so first survives and second is accumulated
@@ -51,7 +52,7 @@ package object common {
         case Nil => accum
       }
 
-    recur(list, Nil.asInstanceOf[List[E]])
+    recur(list, List[A]())
   }
 
 }
