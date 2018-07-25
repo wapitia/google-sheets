@@ -6,14 +6,14 @@ package common
  *  until all of its "child" iterators are exhausted.
  *  The ordering of the elements is provided by an implicit parameter.
  *
- *  @note that the comparison is done on just the heads of these iterators,
+ *  @note the comparison is done on just the heads of these iterators,
  *  and if the elements in each iterator are not themselves sorted,
  *  then the output of this iterator will not be sorted either.
  *
  *  @tparam A common type of all iterators, whose elements will be compared
  *            against each other.
  *  @constructor makes a new `Iterator[A]` wrapping the given sequence
- *               of iterators in `iters`, using the implicit ording
+ *               of iterators in `iters`, using the implicit ordering
  *               to compare those iterators' head elements.
  *  @param iters collection of iterators, each of which will be emptied
  *               as this stream folding iterator steps through them.
@@ -23,15 +23,18 @@ package common
  */
 class FoldingIterator[A](iters: Seq[Iterator[A]])(implicit tComp: Ordering[A]) extends Iterator[A] {
 
+  /** "BI" is shorthand for BufferedIterator[A] used throughout this class */
   type BI = BufferedIterator[A]
 
   /** Remaining list of populated iterators from which to draw.
-   *  remIters is variable because the list is replaced by function
-   *  [[next()]] as recent iterators bubble to the top and as iterators
-   *  become exhausted.
-   *  All of the incoming iterators from `iter` are wrapped as
+   *  This list is initialized from the given `iters`, wrapped
+   *  in BufferedIterators and only those that are populated are
+   *  retained.
+   *  `remIters` is variable because the list is replaced by the [[next()]] 
+   *  function as its iterator elements become empty.
+   *  Each of the iterator items `iter` are wrapped as 
    *  `BufferedIterator`s (BI's) since we'll want to peek at the heads of the
-   *  iterators without popping them.
+   *  iterators while comparing them to others and before popping them.
    */
   private var remIters: List[BI] = iters.map(_.buffered).filter(_.hasNext).toList
 
@@ -50,7 +53,7 @@ class FoldingIterator[A](iters: Seq[Iterator[A]])(implicit tComp: Ordering[A]) e
    *  iterators become exhausted.
    */
   override def next(): A = {
-    // List constructor will fail if no BI's remaining (remIters is empty)
+    // List constructor will fail if no BI's remain (when remIters is empty)
     val top :: rest =
       bubbleUp[BI](remIters, (i: BI, j: BI) => tComp.compare(i.head, j.head))
     val res = top.next()
@@ -59,7 +62,6 @@ class FoldingIterator[A](iters: Seq[Iterator[A]])(implicit tComp: Ordering[A]) e
     assert(invariance)
     res
   }
-
 }
 
 object FoldingIterator {

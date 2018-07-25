@@ -8,7 +8,7 @@ import java.time.temporal.ChronoUnit._
 import scala.collection.BitSet
 
 /** A schedule object suitable for creating a stream of daily-based dates.
- *  Day-like Schedules include daily, weekly, biweekly, semiweekly, 
+ *  Day-like Schedules include daily, weekly, biweekly, semi-weekly, 
  *  anything that aligns with some constant multiple of days.
  * 
  *  @param nCycleDays the number of days in the cycle

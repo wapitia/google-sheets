@@ -26,33 +26,21 @@ package object common {
    */
   def stringsOf(items: Seq[AnyRef]): Seq[String] = items.map(_.toString)
 
-  /** Bubble to the top the lowest element according to the
-   *  given `comp` comparator function.
+  /** Bubble to the top the lowest element of `list` according to the 
+   *  implicit ordering.
    */
-  def bubbleUp[A](list: List[A], comp: (A,A) => Int): List[A] = {
-
-    // rest.foldRight(L
-    def recur(rest: List[A], accum: List[A]): List[A] =
-      rest match {
-        // list has multiple items, compare the top two
-        // first <= second, so first survives and second is accumulated
-        case h1 :: h2 :: t if comp(h1, h2) <= 0 =>
-            recur(h1 :: t, h2 :: accum)
-
-        // first > second, so second survives and first is accumulated
-        case h1 :: h2 :: t =>
-            recur(h2 :: t, h1 :: accum)
-
-        // list has just one element, having survived all comparisons, if any.
-        // it's returned as the top of the accumulated list
-        case h :: Nil => h :: accum
-
-        // only ever gets here if originally invoked with `List()`,
-        // since the recursive calls never send `Nil` as the first element
-        case Nil => accum
-      }
-
-    recur(list, List[A]())
-  }
+  def bubbleUp[A](list: List[A])(implicit ord: math.Ordering[A]): List[A] =
+    bubbleUp(list, ord.compare _)
+  
+  /** Bubble to the top the lowest element according to the given
+   *  comparator function `comp`.
+   */
+  def bubbleUp[A](list: List[A], comp: (A,A) => Int): List[A] =
+    list.foldRight(List[A]()) {
+      case (e, acc@(h :: t)) if comp(e, h) > 0 =>
+        h :: e :: t
+      case (e, acc) =>
+        e :: acc
+    }
 
 }
