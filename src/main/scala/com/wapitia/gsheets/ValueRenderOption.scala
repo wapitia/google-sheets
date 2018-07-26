@@ -34,6 +34,6 @@ object ValueRenderOption extends Enum[ValueRenderOption] {
   /** Delivers pre-calculated entries where formulas are given as strings starting with '=' */
   case object FORMULA extends ValueRenderOption
 
-  val values = List(FORMATTED_VALUE, UNFORMATTED_VALUE, FORMULA)
+  val enumValues = List(FORMATTED_VALUE, UNFORMATTED_VALUE, FORMULA)
 }
 

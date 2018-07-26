@@ -42,5 +42,5 @@ object Cycle extends Enum[Cycle] {
   case object SemiAnnually extends Cycle{ val daysInCycle = 0; val monthsInCycle = 6 }
   case object Annually extends Cycle{ val daysInCycle = 0; val monthsInCycle = 12 }
   
-  val values = List(Daily, BiDaily, Weekly, BiWeekly, Monthly, BiMonthly, Quarterly, SemiAnnually, Annually)
+  val enumValues = List(Daily, BiDaily, Weekly, BiWeekly, Monthly, BiMonthly, Quarterly, SemiAnnually, Annually)
 }

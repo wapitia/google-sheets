@@ -30,7 +30,7 @@ object CycleMarshaller {
   def apply(defaultCycle: => Cycle): CycleMarshaller = new CycleMarshaller(
     defaultCycle = defaultCycle,
     whenBad = throw new MarshalInException(UnkCycle, null),
-    lookup = Cycle.valuesMap,
+    lookup = Cycle.enumValueNamed,
     caseSensitive = false)
 }
 

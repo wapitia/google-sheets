@@ -10,7 +10,7 @@ object TestCycles extends App {
   
   println(s"difference monthToDays Float vs Double: $diff")
   
-  Cycle.values.foreach { cycle =>
+  Cycle.enumValues.foreach { cycle =>
     val nDays = cycle.asDays
     val nMonths = cycle.asMonths
     val cName = cycle.name

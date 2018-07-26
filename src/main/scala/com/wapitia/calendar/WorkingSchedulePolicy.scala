@@ -29,6 +29,6 @@ object WorkingSchedulePolicy extends Enum[WorkingSchedulePolicy] {
    */
   case object NextAvailableDaySkipOnOverlap extends WorkingSchedulePolicy
   
-  val values = List(SkipDay, NextAvailableDayNoSkip, NextAvailableDaySkipOnOverlap)
+  val enumValues = List(SkipDay, NextAvailableDayNoSkip, NextAvailableDaySkipOnOverlap)
 }
 

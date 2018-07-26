@@ -35,7 +35,7 @@ package common
  *  @tparam A The type of the enum, self-reflective as in
  *            trait `Z extends Z.Value with EValue[Z]`
  */
-@Deprecated // Dotty introduces enum at which point this is moot
+@Deprecated // Dotty introduces enum at which point most of this is moot
 trait EValue[A] {
   self: A=>
 
@@ -107,12 +107,16 @@ trait Enum[A <: EValue[A]] {
    *  This mirrors the java enum constuct, which has a `values()` method
    *  returning its list.
    */
-  val values: List[A]
+  val enumValues: Iterable[A]
 
   /** Look up the given name of the enum which must match the object's base name. */
-  def valueOf(name: String): A = valuesMap(name)
+  def valueOf(name: String): A = enumValueNamed(name)
 
+  /** Map of `Enum` indexes to corresponding enum values, 0 to n */
+  lazy val enumValue: Map[Int,A] = enumValues.zipWithIndex.map {case (v,i) => i -> v }.toMap
+  
   /** Map of `Enum` names to corresponding instances */
-  lazy val valuesMap: Map[String,A] = values.map(v => v.name -> v).toMap
+  lazy val enumValueNamed: Map[String,A] = enumValues.map(v => v.name -> v).toMap
+  
 
 }
