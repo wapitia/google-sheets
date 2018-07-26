@@ -37,10 +37,8 @@ package object common {
    */
   def bubbleUp[A](list: List[A], comp: (A,A) => Int): List[A] =
     list.foldRight(List[A]()) {
-      case (e, acc@(h :: t)) if comp(e, h) > 0 =>
-        h :: e :: t
-      case (e, acc) =>
-        e :: acc
+      case (e, h :: t) if comp(e, h) > 0 => h :: e :: t
+      case (e, rem) => e :: rem
     }
 
 }

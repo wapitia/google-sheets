@@ -35,6 +35,7 @@ package common
  *  @tparam A The type of the enum, self-reflective as in
  *            trait `Z extends Z.Value with EValue[Z]`
  */
+@Deprecated // Dotty introduces enum at which point this is moot
 trait EValue[A] {
   self: A=>
 

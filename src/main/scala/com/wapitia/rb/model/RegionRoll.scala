@@ -4,7 +4,7 @@ package model
 import com.wapitia.common.Enum
 import com.wapitia.common.EValue
 
-/** enum BlackRoll { Odd, Even }  */
+/** enum BlackRoll { case Odd, Even }  */
 sealed trait BlackRoll extends BlackRoll.Value with EValue[BlackRoll]
 
 object BlackRoll extends Enum[BlackRoll] {

@@ -8,15 +8,15 @@ import com.wapitia.common.{Enum,EValue}
  *
  *  {{{  
  *    enum Cycle(daysInCycle: Int, monthsInCycle: Int) {
- *      Daily(1, 0),
- *      BiDaily(2, 0),
- *      Weekly(7, 0),
- *      BiWeekly(14, 0),
- *      Monthly(0, 1),
- *      BiMonthly(0, 2),
- *      Quarterly(0, 3),
- *      SemiAnnually(0, 6),
- *      Annually(0, 12)
+ *      case Daily extends Cycle(1, 0)
+ *      case BiDaily extends Cycle(2, 0)
+ *      case Weekly extends Cycle(7, 0)
+ *      case BiWeekly extends Cycle(14, 0)
+ *      case Monthly extends Cycle(0, 1)
+ *      case BiMonthly extends Cycle(0, 2)
+ *      case Quarterly extends Cycle(0, 3)
+ *      case SemiAnnually extends Cycle(0, 6)
+ *      case Annually extends Cycle(0, 12)
  *      
  *      def asDays: Double = ...
  *      def asMonths: Double = ...
