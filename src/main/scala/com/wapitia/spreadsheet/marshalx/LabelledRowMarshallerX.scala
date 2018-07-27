@@ -1,10 +1,10 @@
-package com.wapitia.spreadsheet.marshal
+package com.wapitia.spreadsheet.marshalx
 
 import com.wapitia.common.marshal.MarshalIn
 
-class LabelledCellMarshallers {
+class LabelledCellMarshallersX {
   
-  import LabelledRowMarshaller._
+  import LabelledRowMarshallerX._
   
   var cellMarshallers: Map[String,MarshalIn[Any,_]] = Map()
   
@@ -20,14 +20,14 @@ class LabelledCellMarshallers {
  *  @tparam A finished row object or builder/marshaller 
  *            of such row objects
  */
-trait LabelledRowMarshaller[A] {
+trait LabelledRowMarshallerX[A] {
 
-  def cellMarshaller: LabelledCellMarshallers
+  def cellMarshaller: LabelledCellMarshallersX
   
   def build(): A
   var rowObjectMarshallers: Map[String, _ => _] = Map()
   
-  import LabelledRowMarshaller._
+  import LabelledRowMarshallerX._
   
   def addRowItemMarshaller[MT <: Any](key: String, t: MT => _): Unit = {
     rowObjectMarshallers += (key -> t)
@@ -46,8 +46,9 @@ trait LabelledRowMarshaller[A] {
   
 }
 
-abstract class EmptyLabelledRowMarshaller[A] extends LabelledRowMarshaller[A] {
-  val cellMarshaller: LabelledCellMarshallers = new LabelledCellMarshallers
+
+abstract class EmptyLabelledRowMarshallerX[A] extends LabelledRowMarshallerX[A] {
+  val cellMarshaller: LabelledCellMarshallersX = new LabelledCellMarshallersX
   
   def build(): A
   
@@ -62,7 +63,7 @@ abstract class EmptyLabelledRowMarshaller[A] extends LabelledRowMarshaller[A] {
   
 }
 
-object LabelledRowMarshaller {
+object LabelledRowMarshallerX {
   
   val MarshalInIdentity = new MarshalIn[Any,Any] {
     override def unmarshal(v: Any) = v

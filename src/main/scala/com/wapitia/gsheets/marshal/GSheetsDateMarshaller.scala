@@ -6,6 +6,8 @@ import java.time.temporal.ChronoUnit
 import com.wapitia.common.marshal.MarshalIn
 import com.wapitia.spreadsheet.marshal.SpreadsheetMarshalException
 
+// TODO Extract all but the GoogleSheetsEpoch back into a common generic data marshaller template
+//      so that potentially other date marshalling schemes may be easily extended.
 /** Unmarshal a ''Google Sheets'' date into a `java.time.LocalDate`.
  *  The type is expected to a `BigDecimal`, which is then considered
  *  to be a value relative to the Google Sheets Epoch of 1899-12-30
@@ -23,13 +25,14 @@ class SimpleDateMarshal extends MarshalIn[Any,LocalDate] {
    *  @throws(classOf[SpreadsheetMarshalException])
    */
   override def unmarshal(cell: Any): LocalDate = cell match {
+    case l: Long                 => unmarshalEpochDay(l)
     case n: java.math.BigDecimal => unmarshalEpochDay(n.longValue())
     case _  => throw new SpreadsheetMarshalException("unparsable date %s:%s".format(cell, cell.getClass))
   }
     
 }
 
-/** A `SimpleDataMarshal` that also accepts an empty string as its cell value to indicate `null`.
+/** A `SimpleDateMarshal` that also accepts an empty string as its cell value to indicate `null`.
  */
 class NullableDateMarshal extends SimpleDateMarshal {
 
@@ -64,9 +67,9 @@ object GSheetsDateMarshaller {
    *  an integer number of days relative to the `GoogleSheetsEpoch`.
 	 */
   def unmarshalEpochDay(googleSheetsDay: Long): java.time.LocalDate = {
-      val epochday: Long = googleSheetsDay - JavaVsGoogleDay0Diff
-      val res = java.time.LocalDate.ofEpochDay(epochday)
-      res
+    val epochday: Long = googleSheetsDay - JavaVsGoogleDay0Diff
+    val res = java.time.LocalDate.ofEpochDay(epochday)
+    res
   }
   
 }
