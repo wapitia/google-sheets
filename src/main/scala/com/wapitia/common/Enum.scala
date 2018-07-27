@@ -118,5 +118,4 @@ trait Enum[A <: EValue[A]] {
   /** Map of `Enum` names to corresponding instances */
   lazy val enumValueNamed: Map[String,A] = enumValues.map(v => v.name -> v).toMap
   
-
 }

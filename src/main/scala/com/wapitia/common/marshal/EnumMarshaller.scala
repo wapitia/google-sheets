@@ -48,18 +48,17 @@ class EnumMarshaller[A <: EValue[A]](
  */
 trait EnumMarshallerTemplate {
   import com.wapitia.common.marshal.MarshalInException
-  import scala.reflect.runtime.universe.weakTypeTag
 
   type EnumType <: EValue[EnumType]
   def enumValueMap: Map[String,EnumType]
 
   type MarshallerType = EnumMarshaller[EnumType]
-  def collectionName = weakTypeTag[EnumType]
+  def collectionName = scala.reflect.runtime.universe.weakTypeTag[EnumType].tpe.toString
 
   val Into = apply()
 
-  def onMissingValue(value: String) =
-    throw new MarshalInException(s"Missing or unrecognized $collectionName having name: `$value`")
+  val onMissingValue = (value: String) =>
+    throw new MarshalInException(s"Missing or unrecognized $collectionName enum having name: `$value`")
 
   /** Make a strict new `Marshaller`, case sensitive which throws
    *  a `MarshalInException` on an unrecognizable lookup string.
