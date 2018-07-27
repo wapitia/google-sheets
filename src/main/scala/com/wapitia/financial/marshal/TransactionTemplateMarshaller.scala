@@ -30,7 +30,8 @@ class TransactionTemplateMarshaller extends LabelledSheetMarshaller[TransactionT
     val intoCurrency = com.wapitia.spreadsheet.marshal.nullableCurrencyMarshal
     val intoBool = com.wapitia.spreadsheet.marshal.boolMarshal
     val intoInt = com.wapitia.spreadsheet.marshal.intMarshal
-    val intoCycle = CycleMarshaller.IntoCycle
+    val intoCycle = CycleMarshaller.Into
+
     //              cells titled ...   => ... are marshalled into type...
      addCellMarshaller("Item",             intoString)
      addCellMarshaller("Next Transaction", intoDate)
