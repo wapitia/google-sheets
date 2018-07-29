@@ -31,7 +31,7 @@ class GoogleSheetsAccess(appName: String, scopes: List[String]) {
    *  Uses default client secrets file and credentials folder.
    *  Delivers string values as seen in the heads-up screen formats.
    */
-  def loadSheetFormattedValues(sheetSid: String, loadRange: String) : List[List[AnyRef]] =
+  def loadSheetFormattedValues(sheetSid: String, loadRange: String) : List[List[Any]] =
     loadSheet(sheetSid, loadRange, ValueRenderOption.FORMATTED_VALUE, ClientSecretsFile, CredentialsFolder)
 
   /** Load the values from a Google Sheet given the sheet's SID and a parseable
@@ -42,7 +42,7 @@ class GoogleSheetsAccess(appName: String, scopes: List[String]) {
    *  o other text as String values pretty much unchanged
    *  o Null object on empty cells
    */
-  def loadSheetUnformattedValues(sheetSid: String, loadRange: String) : List[List[AnyRef]] =
+  def loadSheetUnformattedValues(sheetSid: String, loadRange: String) : List[List[Any]] =
     loadSheet(sheetSid, loadRange, ValueRenderOption.UNFORMATTED_VALUE, ClientSecretsFile, CredentialsFolder)
 
   /** Load the values from a Google Sheet given the sheet's SID and a parseable
@@ -52,7 +52,7 @@ class GoogleSheetsAccess(appName: String, scopes: List[String]) {
    *  instead of the raw values where formulas are defined, but otherwise delivers data as
    *  `loadSheetUnformattedValues`.
    */
-  def loadSheetFormula(sheetSid: String, loadRange: String) : List[List[AnyRef]] =
+  def loadSheetFormula(sheetSid: String, loadRange: String) : List[List[Any]] =
     loadSheet(sheetSid, loadRange, ValueRenderOption.FORMULA, ClientSecretsFile, CredentialsFolder)
 
   /** Load the values from a Google Sheet given the sheet's SID and a parseable
@@ -75,7 +75,7 @@ class GoogleSheetsAccess(appName: String, scopes: List[String]) {
     loadRange: String,
     valueOption: ValueRenderOption,
     clientSecretsFile: String,
-    credentialsFolder: String) : List[List[AnyRef]] = {
+    credentialsFolder: String) : List[List[Any]] = {
 
     import scala.collection.JavaConverters._
     import GoogleSheetsAccess._

@@ -2,7 +2,7 @@ package com.wapitia
 package spreadsheet
 package marshal
 
-import com.wapitia.common.marshal.MarshalIn
+import com.wapitia.common.marshal.InMarshal
 
 /** 
  *  @tparam A finished row object or builder/marshaller 

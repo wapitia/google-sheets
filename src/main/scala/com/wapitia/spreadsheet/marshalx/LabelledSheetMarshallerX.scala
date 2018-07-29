@@ -2,17 +2,14 @@ package com.wapitia
 package spreadsheet
 package marshalx
 
-import com.wapitia.common.marshal.MarshalIn
+import com.wapitia.common.marshal.InMarshal
 
-/** 
- *  @tparam A finished row object or builder/marshaller 
+/**
+ *  @tparam A finished row object or builder/marshaller
  *            of such row objects
  */
-trait LabelledSheetMarshallerX[A] {
-  
-  def startNewRow(): LabelledRowMarshallerX[A]
+trait LabelledSheetMarshallerX[O,+A] {
+
+  def startNewRow(): LabelledRowMarshalX[O,A]
 }
 
-object LabelledSheetMarshallerX {
-  
-}

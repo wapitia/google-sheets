@@ -3,7 +3,7 @@ package common
 package marshal
 
 /** Marshals any incoming object to a string. */
-class StringMarshalIn extends MarshalIn[Any,String] {
+class StringInMarshal extends InMarshal[Any,String] {
 
   /** Convert the value to string by calling `toString`.
    *

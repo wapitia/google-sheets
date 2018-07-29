@@ -1,7 +1,7 @@
 package com.wapitia
 package gsheets
 
-import com.wapitia.common.marshal.MarshalIn
+import com.wapitia.common.marshal.InMarshal
 
 /** marshal package level constants. */
 package object marshal {
@@ -11,12 +11,12 @@ package object marshal {
    *  Nulls are not allowed.
    *  @tparam AnyRef input value type allows any incoming type to be tested. 
    */
-  val simpleDateMarshal: MarshalIn[Any,java.time.LocalDate] = GSheetsDateMarshaller.simpleMarshal  
+  val simpleDateMarshal: InMarshal[Any,java.time.LocalDate] = GSheetsDateMarshaller.simpleMarshal  
   
   /** Marshal a Google Sheets Date value into a [[java.time.LocalDate]]. 
    *  The input value type is expected to be a [[java.math.BigDecimal]]
    *  or an empty string indicating `null`.  
    *  @tparam AnyRef input value type allows any incoming type to be tested. 
    */
-  val nullableDateMarshal: MarshalIn[Any,java.time.LocalDate] = GSheetsDateMarshaller.nullableMarshal
+  val nullableDateMarshal: InMarshal[Any,java.time.LocalDate] = GSheetsDateMarshaller.nullableMarshal
 }

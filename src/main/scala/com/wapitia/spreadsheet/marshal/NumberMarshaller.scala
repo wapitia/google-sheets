@@ -2,21 +2,20 @@ package com.wapitia
 package spreadsheet
 package marshal
 
-import java.math.BigDecimal
-import com.wapitia.common.marshal.MarshalIn
-import java.math.BigInteger
+import com.wapitia.common.marshal.InMarshal
 
-class SimpleNumberMarshal extends MarshalIn[Any,BigDecimal] {
-  
+class SimpleNumberMarshal extends InMarshal[Any,BigDecimal] {
+
   override def unmarshal(v: Any): BigDecimal = v match {
     case n: java.math.BigDecimal => n
+    case n: scala.math.BigDecimal => n
     case _  => throw new SpreadsheetMarshalException("unparsable number %s:%s".format(v, v.getClass))
   }
-    
+
 }
 
 trait Nullable {
-  
+
   def isNull(v: Any): Boolean = v match {
     case s: String if s.isEmpty() => true
     case _  => false
@@ -26,75 +25,80 @@ trait Nullable {
 // TODO
 //class NullableNumberMarshal extends SimpleNumberMarshal with Nullable
 class NullableNumberMarshal extends SimpleNumberMarshal {
-  
+
   override def isNull(v: Any): Boolean = v match {
     case s: String if s.isEmpty() => true
     case _  => false
   }
-} 
+}
 
-class IntMarshal extends MarshalIn[Any,Int] {
-  
+class IntMarshal extends InMarshal[Any,Int] {
+
   override def unmarshal(v: Any): Int = v match {
     case s: String => s.toInt
-    case i: java.lang.Integer => i 
-    case l: java.lang.Long => l.intValue() 
+    case i: java.lang.Integer => i
+    case l: java.lang.Long => l.intValue()
     case n: java.math.BigDecimal => n.intValue()
+    case d: scala.math.BigDecimal => d.intValue()
     case _  => throw new SpreadsheetMarshalException("unparsable integer %s:%s".format(v, v.getClass))
   }
 
 }
 
-class BigIntegerMarshal extends MarshalIn[Any,BigInteger] {
-  
-  override def unmarshal(v: Any): BigInteger = v match {
-    case s: String => new BigInteger(s)
+class BigIntegerMarshal extends InMarshal[Any,BigInt] {
+
+  override def unmarshal(v: Any): BigInt = v match {
+    case s: String => BigInt(s)
     case n: java.math.BigInteger => n
-    case n: java.math.BigDecimal => n.toBigInteger()
+    case n: java.math.BigDecimal => BigInt(n.toBigInteger())
+    case d: scala.math.BigDecimal => d.toBigInt()
     case _  => throw new SpreadsheetMarshalException("unparsable BigInteger %s:%s".format(v, v.getClass))
   }
 
 }
 
-class BigDecimalMarshal extends MarshalIn[Any,BigDecimal] {
-  
+class BigDecimalMarshal extends InMarshal[Any,BigDecimal] {
+
   override def unmarshal(v: Any): BigDecimal = v match {
-    case s: String => new BigDecimal(s)
-    case n: java.math.BigInteger => new BigDecimal(n)
-    case d: java.math.BigDecimal => d
+    case s: String => BigDecimal(s)
+    case n: java.math.BigInteger => BigDecimal(n)
+    case d: java.math.BigDecimal => BigDecimal(d)
+    case d: scala.math.BigDecimal => d
     case _  => throw new SpreadsheetMarshalException("unparsable BigDecimal %s:%s".format(v, v.getClass))
   }
 
 }
 
-class FloatMarshal extends MarshalIn[Any,Float] {
-  
+class FloatMarshal extends InMarshal[Any,Float] {
+
   override def unmarshal(v: Any): Float = v match {
     case s: String => s.toFloat
-    case i: java.lang.Integer => i.floatValue() 
-    case l: java.lang.Long => l.floatValue() 
+    case i: java.lang.Integer => i.floatValue()
+    case l: java.lang.Long => l.floatValue()
     case n: java.math.BigDecimal => n.floatValue()
+    case n: scala.math.BigDecimal => n.floatValue()
     case _  => throw new SpreadsheetMarshalException("unparsable float %s:%s".format(v, v.getClass))
   }
 
 }
 
-class DoubleMarshal extends MarshalIn[Any,Double] {
-  
+class DoubleMarshal extends InMarshal[Any,Double] {
+
   override def unmarshal(v: Any): Double = v match {
     case s: String => s.toDouble
-    case i: java.lang.Integer => i.doubleValue() 
-    case l: java.lang.Long => l.doubleValue() 
+    case i: java.lang.Integer => i.doubleValue()
+    case l: java.lang.Long => l.doubleValue()
     case n: java.math.BigDecimal => n.doubleValue()
+    case n: scala.math.BigDecimal => n.doubleValue()
     case _  => throw new SpreadsheetMarshalException("unparsable float %s:%s".format(v, v.getClass))
   }
 
 }
 
-class BoolMarshal extends MarshalIn[Any,Boolean] {
-  
+class BoolMarshal extends InMarshal[Any,Boolean] {
+
   import NumberMarshaller.stringToBool
-  
+
   override def unmarshal(v: Any): Boolean = v match {
     case s: String => stringToBool(s)
     case _  => throw new SpreadsheetMarshalException("unparsable boolean value %s:%s".format(v, v.getClass))
@@ -103,28 +107,28 @@ class BoolMarshal extends MarshalIn[Any,Boolean] {
 }
 
 object NumberMarshaller {
-  
-  val simpleMarshal: MarshalIn[Any,BigDecimal] = new SimpleNumberMarshal  
-  
-  val nullableMarshal: MarshalIn[Any,BigDecimal] = new NullableNumberMarshal
-  
-  val simpleCurrencyMarshal: MarshalIn[Any,BigDecimal] = new SimpleNumberMarshal  
-  
-  val nullableCurrencyMarshal: MarshalIn[Any,BigDecimal] = new NullableNumberMarshal
-  
-  val simpleIntMarshal: MarshalIn[Any,Int] = new IntMarshal
-  
-  val simpleFloatMarshal: MarshalIn[Any,Float] = new FloatMarshal
-  
-  val simpleDoubleMarshal: MarshalIn[Any,Double] = new DoubleMarshal
-  
-  val intMarshal: MarshalIn[Any,Int] = new IntMarshal
-  
-  val boolMarshal: MarshalIn[Any,Boolean] = new BoolMarshal
-  
+
+  val simpleMarshal: InMarshal[Any,BigDecimal] = new SimpleNumberMarshal
+
+  val nullableMarshal: InMarshal[Any,BigDecimal] = new NullableNumberMarshal
+
+  val simpleCurrencyMarshal: InMarshal[Any,BigDecimal] = new SimpleNumberMarshal
+
+  val nullableCurrencyMarshal: InMarshal[Any,BigDecimal] = new NullableNumberMarshal
+
+  val simpleIntMarshal: InMarshal[Any,Int] = new IntMarshal
+
+  val simpleFloatMarshal: InMarshal[Any,Float] = new FloatMarshal
+
+  val simpleDoubleMarshal: InMarshal[Any,Double] = new DoubleMarshal
+
+  val intMarshal: InMarshal[Any,Int] = new IntMarshal
+
+  val boolMarshal: InMarshal[Any,Boolean] = new BoolMarshal
+
   val trues: List[String] = List("YES", "TRUE", "1", "Y", "T")
   def stringToBool(str: String): Boolean = {
     trues.find(_ == str).isDefined
   }
-  
+
 }

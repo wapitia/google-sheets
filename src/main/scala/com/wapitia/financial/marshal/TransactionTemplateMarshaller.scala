@@ -2,7 +2,7 @@ package com.wapitia
 package financial
 package marshal
 
-import java.math.BigDecimal
+//import java.math.BigDecimal
 import java.time.LocalDate
 
 import com.wapitia.calendar.Cycle
@@ -10,7 +10,7 @@ import com.wapitia.calendar.CycleMarshaller
 import com.wapitia.financial.TransactionTemplate
 import com.wapitia.spreadsheet.marshal.LabelledRowMarshaller
 import com.wapitia.spreadsheet.marshal.LabelledSheetMarshaller
-import com.wapitia.common.marshal.MarshalIn
+import com.wapitia.common.marshal.InMarshal
 import com.wapitia.spreadsheet.marshal.EmptyLabelledRowMarshaller
 import com.wapitia.spreadsheet.marshal.LabelledCellMarshallers
 
@@ -25,7 +25,7 @@ class TransactionTemplateMarshaller extends LabelledSheetMarshaller[TransactionT
 
   val transactionCellMarshaller = new LabelledCellMarshallers {
     // marshallers abstracted here so that types are bound to marshallers in just one place
-    val intoDate = com.wapitia.gsheets.marshal.nullableDateMarshal.asInstanceOf[MarshalIn[Any,Any]]
+    val intoDate = com.wapitia.gsheets.marshal.nullableDateMarshal.asInstanceOf[InMarshal[Any,Any]]
     val intoString = com.wapitia.spreadsheet.marshal.simpleStringMarshal
     val intoCurrency = com.wapitia.spreadsheet.marshal.nullableCurrencyMarshal
     val intoBool = com.wapitia.spreadsheet.marshal.boolMarshal

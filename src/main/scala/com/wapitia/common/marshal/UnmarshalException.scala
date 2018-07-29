@@ -2,7 +2,7 @@ package com.wapitia
 package common
 package marshal
 
-/** As may be thrown by MarshalIn.unmarshal */
+/** As may be thrown by InMarshal.unmarshal */
 class UnmarshalException[E <: Throwable](message: String, cause: E)
 extends RuntimeException(message, cause)
 {

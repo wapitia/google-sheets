@@ -22,16 +22,16 @@ package object common {
   /** map a sequence of AnyRef's into a sequence of strings via their toString method
    *
    *  Note:
-   *    This is NOT that same declaration as def stringsOf(items: AnyRef*) .
+   *    This is NOT that same declaration as {{{ def stringsOf(items: Any*) }}}.
    */
-  def stringsOf(items: Seq[AnyRef]): Seq[String] = items.map(_.toString)
+  def stringsOf(items: Seq[Any]): Seq[String] = items.map(_.toString)
 
-  /** Bubble to the top the lowest element of `list` according to the 
+  /** Bubble to the top the lowest element of `list` according to the
    *  implicit ordering.
    */
   def bubbleUp[A](list: List[A])(implicit ord: math.Ordering[A]): List[A] =
     bubbleUp(list, ord.compare _)
-  
+
   /** Bubble to the top the lowest element according to the given
    *  comparator function `comp`.
    */
