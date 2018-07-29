@@ -8,13 +8,13 @@ import com.wapitia.common.marshal.InMarshal
  *  @tparam A finished row object or builder/marshaller
  *            of such row objects
  */
-trait LabelledRowMarshalX[O,+A] {
+trait LabelledRowMarshalX[A,B] {
 
   def cellMarshallMap: LabelledInMarshalMapX
-  def build(): O
+  def build(): A
   def rowObjectMarshals: Map[String, (_,_) => Unit]
 
-  def set[MR <: LabelledRowMarshalX[O,_],C](marshalContainer: MR, key: String, rawvalue: Any): Unit = {
+  def set[MR <: LabelledRowMarshalX[A,_],C](marshalContainer: MR, key: String, rawvalue: Any): Unit = {
     import LabelledRowMarshalX._
     val cellMarshal = cellMarshallMap.getCellMarshal[C](key)
 

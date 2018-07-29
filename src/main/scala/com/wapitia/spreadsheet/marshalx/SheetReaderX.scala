@@ -21,10 +21,10 @@ package spreadsheet.marshalx
  * @type A row type
  */
 @FunctionalInterface
-trait SheetReaderX[O] {
+trait SheetReaderX[A] {
 
   /** Read a list of rows of lists of cells into a list of `A` objects,
    *  where `A` represents the marshalled combined record of one row.
    */
-  def read(rawsheet: List[List[Any]]): List[O]
+  def read(rawsheet: List[List[Any]]): List[A]
 }

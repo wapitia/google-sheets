@@ -12,12 +12,12 @@ class LabelledInMarshalMapX {
 
   var cellMarshallers: Map[String,InMarshal[Any,Any]] = Map()
 
-  def addCellMarshal[CM <: Any](key: String, marshalIn: InMarshal[Any,CM]) {
+  def addCellMarshal[T <: Any](key: String, marshalIn: InMarshal[Any,T]) {
     cellMarshallers += (key -> marshalIn)
   }
 
-  def getCellMarshal[CM <: Any](marshalName: String): InMarshal[Any,CM] =
-    cellMarshallers.getOrElse(marshalName, MarshalIdentity).asInstanceOf[InMarshal[Any,CM]]
+  def getCellMarshal[T <: Any](marshalName: String): InMarshal[Any,T] =
+    cellMarshallers.getOrElse(marshalName, MarshalIdentity).asInstanceOf[InMarshal[Any,T]]
 }
 
 object LabelledInMarshalMapX {
