@@ -8,10 +8,10 @@ package spreadsheet.marshal
  *  The header row is considered to be the first row in a provided sheet
  *  for which the given nonHeaderFilter function argument returns true
  */
-class SimpleSheetReader[A](
+class SimpleSheetReader[A,B](
     nonHeaderFilter: List[Any] => Boolean,
     blankRowFilter: List[Any] => Boolean,
-    rowBuilder: LabelledSheetMarshaller[A])
+    rowBuilder: LabelledSheetMarshal[A,B])
 extends SheetReader[A]
 {
   /**
@@ -33,28 +33,28 @@ extends SheetReader[A]
 
   def parseBody(header: Seq[String], body: List[List[Any]]): List[A] = {
 
-    // TODO CDM
+    // TODO
 //    body.filter(!blankRowFilter(_)) map { row =>
     body map { row =>
-      val rowMarshaller: LabelledRowMarshaller[A] = rowBuilder.startNewRow()
+      val rowMarshaller = rowBuilder.makeRow()
       for ( (k, v) <- header.zip(row) )
         rowMarshaller.set(k, v)
-      rowMarshaller.build()
+      rowMarshaller.make()
     }
   }
 }
 
 object SimpleSheetReader {
 
-  def apply[A](
+  def apply[A,B](
     nonHeaderFilter: List[Any] => Boolean,
     blankRowFilter: List[Any] => Boolean,
-    rowBuilder: LabelledSheetMarshaller[A]): SimpleSheetReader[A] =
+    rowBuilder: LabelledSheetMarshal[A,B]): SimpleSheetReader[A,B] =
       new SimpleSheetReader(nonHeaderFilter, blankRowFilter, rowBuilder)
 
   /** Create a new SimpleSheetReader with the given rowBuilder instance,
    *  using `isBlankRow` instances for nonHeaderFilter and blankRowFilter.
    */
-  def apply[A](rowBuilder: LabelledSheetMarshaller[A]): SimpleSheetReader[A] =
+  def apply[A,B](rowBuilder: LabelledSheetMarshal[A,B]): SimpleSheetReader[A,B] =
       new SimpleSheetReader(isBlankRow, isBlankRow, rowBuilder)
 }

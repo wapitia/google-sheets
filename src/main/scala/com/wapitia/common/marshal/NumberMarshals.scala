@@ -1,8 +1,11 @@
 package com.wapitia
-package spreadsheet
-package marshal
+package common.marshal
 
-import com.wapitia.common.marshal.InMarshal
+import com.wapitia.spreadsheet.marshal.SpreadsheetMarshalException
+import scala.BigDecimal
+import scala.BigInt
+import scala.math.BigDecimal.javaBigDecimal2bigDecimal
+import scala.math.BigInt.javaBigInteger2bigInt
 
 class SimpleNumberMarshal extends InMarshal[Any,BigDecimal] {
 
@@ -97,7 +100,7 @@ class DoubleMarshal extends InMarshal[Any,Double] {
 
 class BoolMarshal extends InMarshal[Any,Boolean] {
 
-  import NumberMarshaller.stringToBool
+  import NumberMarshals.stringToBool
 
   override def unmarshal(v: Any): Boolean = v match {
     case s: String => stringToBool(s)
@@ -106,7 +109,7 @@ class BoolMarshal extends InMarshal[Any,Boolean] {
 
 }
 
-object NumberMarshaller {
+object NumberMarshals {
 
   val simpleMarshal: InMarshal[Any,BigDecimal] = new SimpleNumberMarshal
 

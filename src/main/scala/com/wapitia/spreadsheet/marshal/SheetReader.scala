@@ -1,5 +1,6 @@
 package com.wapitia
-package spreadsheet.marshal
+package spreadsheet
+package marshal
 
 /**
  * A sheet reader converts a spreadsheet of "raw", unformatted cell values

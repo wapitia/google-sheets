@@ -2,75 +2,51 @@ package com.wapitia
 package financial
 package marshal
 
-//import java.math.BigDecimal
 import java.time.LocalDate
 
 import com.wapitia.calendar.Cycle
 import com.wapitia.calendar.CycleMarshaller
 import com.wapitia.financial.TransactionTemplate
-import com.wapitia.spreadsheet.marshal.LabelledRowMarshaller
-import com.wapitia.spreadsheet.marshal.LabelledSheetMarshaller
 import com.wapitia.common.marshal.InMarshal
-import com.wapitia.spreadsheet.marshal.EmptyLabelledRowMarshaller
-import com.wapitia.spreadsheet.marshal.LabelledCellMarshallers
+import com.wapitia.spreadsheet.marshal.{intMarshal,boolMarshal,simpleStringMarshal,nullableCurrencyMarshal,LabelledSheetMarshal}
+import com.wapitia.gsheets.marshal.nullableDateMarshal
 
 /**
  * Tool for translating a spreadsheet containing rows of financial transaction template data
  * into an ordered list of `TransactionTemplate`s.
  */
-class TransactionTemplateMarshaller extends LabelledSheetMarshaller[TransactionTemplate.Builder]  {
+class TransactionTemplateMarshaller extends LabelledSheetMarshal[TransactionTemplate,TransactionTemplate.Builder]  {
 
-  // convenience alias
-  type BLDR = TransactionTemplate.Builder
+  class RowBuilder extends RowMarshal {
+    var rb: TransactionTemplate.Builder = TransactionTemplate.builder()
+    override def make(): TransactionTemplate = rb.build()
+  }
 
-  val transactionCellMarshaller = new LabelledCellMarshallers {
-    // marshallers abstracted here so that types are bound to marshallers in just one place
-    val intoDate = com.wapitia.gsheets.marshal.nullableDateMarshal.asInstanceOf[InMarshal[Any,Any]]
-    val intoString = com.wapitia.spreadsheet.marshal.simpleStringMarshal
-    val intoCurrency = com.wapitia.spreadsheet.marshal.nullableCurrencyMarshal
-    val intoBool = com.wapitia.spreadsheet.marshal.boolMarshal
-    val intoInt = com.wapitia.spreadsheet.marshal.intMarshal
+  private[this] def init() {
+    val intoDate = nullableDateMarshal.asInstanceOf[InMarshal[Any,Any]]
+    val intoString = simpleStringMarshal
+    val intoCurrency = nullableCurrencyMarshal
+    val intoBool = boolMarshal
+    val intoInt = intMarshal
     val intoCycle = CycleMarshaller.Into
 
-    //              cells titled ...   => ... are marshalled into type...
-     addCellMarshaller("Item",             intoString)
-     addCellMarshaller("Next Transaction", intoDate)
-     addCellMarshaller("Amount",           intoCurrency)
-     addCellMarshaller("Cycle",            intoCycle)
-     addCellMarshaller("CycleRefDate",     intoDate)
-     addCellMarshaller("Max",              intoCurrency)
-     addCellMarshaller("Last Pmt Date",    intoDate)
-     addCellMarshaller("Variable",         intoBool)
-     addCellMarshaller("Source",           intoString)
-     addCellMarshaller("Target",           intoString)
-     addCellMarshaller("Pmt Method",       intoString)
-     addCellMarshaller("cat-ndays",        intoInt)
-     addCellMarshaller("cat-nmonths",      intoInt)
+     marshalChain("Item",             intoString, (m: RowBuilder, str: String) =>  m.rb = m.rb.item(str) )
+     marshalChain("Next Transaction", intoDate, (m: RowBuilder, date: LocalDate) =>  m.rb = m.rb.nextTrans(date) )
+     marshalChain("Amount",           intoCurrency, (m: RowBuilder, currency: BigDecimal) =>  m.rb = m.rb.amount(currency) )
+     marshalChain("Cycle",            intoCycle, (m: RowBuilder, v: Cycle) =>   m.rb = m.rb.cycle(v) )
+     marshalChain("CycleRefDate",     intoDate, (m: RowBuilder, date: LocalDate) =>   m.rb = m.rb.cycleRefDate(date) )
+     marshalChain("Max",              intoCurrency, (m: RowBuilder, currency: BigDecimal) =>   m.rb = m.rb.max(currency) )
+     marshalChain("Last Pmt Date",    intoDate, (m: RowBuilder, date: LocalDate) =>  m.rb = m.rb.lastPmtDate(date) )
+     marshalChain("Variable",         intoBool, (m: RowBuilder, bool: Boolean) =>   m.rb = m.rb.variable(bool) )
+     marshalChain("Source",           intoString, (m: RowBuilder, str: String) =>   m.rb = m.rb.source(Account(str)) )
+     marshalChain("Target",           intoString, (m: RowBuilder, str: String) =>  m.rb = m.rb.target(Account(str)) )
+     marshalChain("Pmt Method",       intoString, (m: RowBuilder, str: String) =>  m.rb = m.rb.pmtMethod(str) )
+     marshalChain("cat-ndays",        intoInt, (m: RowBuilder, i: Int) =>   m.rb = m.rb.catNDays(i) )
+     marshalChain("cat-nmonths",      intoInt, (m: RowBuilder, i: Int) =>   m.rb = m.rb.catNMonths(i) )
   }
 
-  class TransactionRowMarshaller(transactionCellMarshaller: LabelledCellMarshallers) extends LabelledRowMarshaller[BLDR] {
-    val cellMarshaller: LabelledCellMarshallers = transactionCellMarshaller
-    var rowBuilder: BLDR = TransactionTemplate.builder()
-    override def build(): BLDR = rowBuilder
+  init()
 
-    //                 cells titled ...   => ... are added to the row builder in the given slot
-     addRowItemMarshaller("Item",             (str: String) => this.rowBuilder = rowBuilder.item(str) )
-     addRowItemMarshaller("Next Transaction", (date: LocalDate) => this.rowBuilder = rowBuilder.nextTrans(date) )
-     addRowItemMarshaller("Amount",           (currency: BigDecimal) => this.rowBuilder = rowBuilder.amount(currency) )
-     addRowItemMarshaller("Cycle",            (v: Cycle) => this.rowBuilder = rowBuilder.cycle(v) )
-     addRowItemMarshaller("CycleRefDate",     (date: LocalDate) => this.rowBuilder = rowBuilder.cycleRefDate(date) )
-     addRowItemMarshaller("Max",              (currency: BigDecimal) => this.rowBuilder = rowBuilder.max(currency) )
-     addRowItemMarshaller("Last Pmt Date",    (date: LocalDate) => this.rowBuilder = rowBuilder.lastPmtDate(date) )
-     addRowItemMarshaller("Variable",         (bool: Boolean) => this.rowBuilder = rowBuilder.variable(bool) )
-     addRowItemMarshaller("Source",           (str: String) => this.rowBuilder = rowBuilder.source(Account(str)) )
-     addRowItemMarshaller("Target",           (str: String) => this.rowBuilder = rowBuilder.target(Account(str)) )
-     addRowItemMarshaller("Pmt Method",       (str: String) => this.rowBuilder = rowBuilder.pmtMethod(str) )
-     addRowItemMarshaller("cat-ndays",        (i: Int) => this.rowBuilder = rowBuilder.catNDays(i) )
-     addRowItemMarshaller("cat-nmonths",      (i: Int) => this.rowBuilder = rowBuilder.catNMonths(i) )
-  }
-
-  override def startNewRow(): LabelledRowMarshaller[BLDR] = {
-    new TransactionRowMarshaller(transactionCellMarshaller)
-  }
+  override def makeRow() = new RowBuilder
 
 }

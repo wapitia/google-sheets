@@ -1,5 +1,7 @@
 package com.wapitia.spreadsheet.marshalx
 
+import com.wapitia.spreadsheet.marshal.SimpleSheetReader
+
 object TestSpreadsheetX extends App {
 
   val sampleSheet: List[List[Any]] = List(
@@ -10,7 +12,7 @@ object TestSpreadsheetX extends App {
   )
 
   def testGoogleSheets() {
-    val rdr = SimpleSheetReaderX[AcctMock,AcctMock.Builder](new AcctMockMarshaller)
+    val rdr = SimpleSheetReader[AcctMock,AcctMock.Builder](new AcctMockMarshaller)
     val rows: List[AcctMock] = rdr.read(sampleSheet) // .map(_.build())
     rows.foreach(println)
   }

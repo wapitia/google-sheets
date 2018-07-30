@@ -3,24 +3,29 @@ package com.wapitia.spreadsheet.marshalx
 import java.time.LocalDate
 
 import com.wapitia.common.marshal.InMarshal
-import com.wapitia.calendar.CycleMarshaller
-import com.wapitia.calendar.Cycle
+import com.wapitia.spreadsheet.marshal.{simpleStringMarshal, nullableCurrencyMarshal, intMarshal}
+import com.wapitia.gsheets.marshal.nullableDateMarshal
+import com.wapitia.calendar.{Cycle, CycleMarshaller}
+import com.wapitia.spreadsheet.marshal.LabelledSheetMarshal
 
 /**
  * Test for marshalling a google spreadsheet's data into a mock Acct instance
  */
-class AcctMockMarshaller extends LabelledSheetMarshallerX[AcctMock,AcctMock.Builder]  {
+class AcctMockMarshaller extends LabelledSheetMarshal[AcctMock,AcctMock.Builder]  {
 
-  trait RowBuilder {
+  class RowBuilder extends RowMarshal {
     var rb: AcctMock.Builder = AcctMock.builder()
+    override def make(): AcctMock = rb.build()
   }
 
-  val marshalKit = new MarshalKit() {
-    val intoDate = com.wapitia.gsheets.marshal.nullableDateMarshal.asInstanceOf[InMarshal[Any,Any]]
-    val intoString = com.wapitia.spreadsheet.marshal.simpleStringMarshal
-    val intoCash = com.wapitia.spreadsheet.marshal.nullableCurrencyMarshal
-    val intoInt = com.wapitia.spreadsheet.marshal.intMarshal
+  private[this] def init() {
+    val intoDate = nullableDateMarshal.asInstanceOf[InMarshal[Any,Any]]
+    val intoString = simpleStringMarshal
+    val intoCash = nullableCurrencyMarshal
+    val intoInt = intMarshal
     val intoCycle = CycleMarshaller.Into
+
+    // Columns    named ... marshalled ...  then bound into builder instance...
     marshalChain("Acct",   intoString, (m: RowBuilder, str: String) => m.rb = m.rb.acctName(str))
     marshalChain("Cycle",  intoCycle,  (m: RowBuilder, v: Cycle) => m.rb = m.rb.cycle(v))
     marshalChain("Date",   intoDate,   (m: RowBuilder, date: LocalDate) => m.rb = m.rb.date(date))
@@ -28,9 +33,7 @@ class AcctMockMarshaller extends LabelledSheetMarshallerX[AcctMock,AcctMock.Buil
     marshalChain("Income", intoCash,   (m: RowBuilder, currency: BigDecimal) => m.rb = m.rb.income(currency))
   }
 
-  override def startNewRow() = new LabelledRowMarshalX[AcctMock, AcctMock.Builder] with RowBuilder {
-    override val cellMarshallMap: LabelledInMarshalMapX = marshalKit.marshalMap
-    override val rowObjectMarshals: Map[String, (_,_) => Unit] = marshalKit.rowObjectMarshals
-    override def build(): AcctMock = rb.build()
-  }
+  init()
+
+  override def makeRow() = new RowBuilder
 }
