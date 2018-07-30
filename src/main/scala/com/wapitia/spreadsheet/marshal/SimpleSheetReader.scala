@@ -91,7 +91,7 @@ class SimpleSheetReader[A,B](
       // the data row indexes reset to row 0.
       readDataRows(common.stringsOf(hrow), rest map { case (_, row) => row } )
     // we got nothin'
-    case _ => Nil.asInstanceOf[List[A]]
+    case _ => Nil.asInstanceOf[Seq[A]]
   }
 
   /** Read, parse, marshal and bind each row of the body given its corresponding header names */
