@@ -81,21 +81,21 @@ class SimpleSheetReader[A,B](
   override def read(rows: Seq[List[Any]]): Seq[A] =
     readIndexed(Stream.continually(0).zip(rows).toList)
 
-  protected def readIndexed(indexedRows: List[(Int, List[Any])]): Seq[A] = indexedRows match {
-    // skip all initial empty rows
-    case (rowNo, row) :: rest if ! headerFilter(rowNo, row) =>
+  protected def readIndexed(indexedRows: Seq[(Int, List[Any])]): Seq[A] = indexedRows match {
+    // skip all initial empty or rather non-header rows
+    case Seq((rowNo, row), rest@_*) if ! headerFilter(rowNo, row) =>
       readIndexed(rest)
     // top hrow is the one header row, rest are sequential rows of data
-    case (rowNo, hrow) :: rest =>
+    case Seq((_, hrow), rest@_*)  =>
+      // strip away the header row indexing, won't need it anymore since
+      // the data row indexes reset to row 0.
       readDataRows(common.stringsOf(hrow), rest map { case (_, row) => row } )
     // we got nothin'
-    case _ =>
-      Nil.asInstanceOf[List[A]]
+    case _ => Nil.asInstanceOf[List[A]]
   }
 
   /** Read, parse, marshal and bind each row of the body given its corresponding header names */
-  protected def readDataRows(header: List[String], body: List[List[Any]]): Seq[A] = {
-
+  protected def readDataRows(header: List[String], body: Seq[List[Any]]): Seq[A] = {
     // note that this incremental counter restarts at the first data row
     // and had nothing to do with the counter started for the headerFilter
     // in the read function
