@@ -13,7 +13,7 @@ object TestSpreadsheetX extends App {
 
   def testGoogleSheets() {
     val rdr = SimpleSheetReader[AcctMock,AcctMock.Builder](new AcctMockMarshaller)
-    val rows: List[AcctMock] = rdr.read(sampleSheet) // .map(_.build())
+    val rows: Seq[AcctMock] = rdr.read(sampleSheet) // .map(_.build())
     rows.foreach(println)
   }
 

@@ -27,5 +27,5 @@ trait SheetReader[A] {
   /** Read a list of rows of lists of cells into a list of `A` objects,
    *  where `A` represents the marshalled combined record of one row.
    */
-  def read(rawsheet: List[List[Any]]): List[A]
+  def read(rawsheet: Seq[List[Any]]): Seq[A]
 }

@@ -44,7 +44,7 @@ package spreadsheet.marshal
  *
  *  @param headerFilter  function applied to each row until the header
  *                       row is found.
- *                       The first row for which this returns `false`
+ *                       The first row for which this returns `true`
  *                       is considered the one header row.
  *  @param dataRowFilter function applied to each data (body) row.
  *                       Starting with the first data row's index as 0,
@@ -78,10 +78,10 @@ class SimpleSheetReader[A,B](
    * The header row (List of Strings) is then retained and used to build
    * all subsequent rows until the list is exhausted.
    */
-  override def read(rows: List[List[Any]]): List[A] =
+  override def read(rows: Seq[List[Any]]): Seq[A] =
     readIndexed(Stream.continually(0).zip(rows).toList)
 
-  protected def readIndexed(indexedRows: List[(Int, List[Any])]): List[A] = indexedRows match {
+  protected def readIndexed(indexedRows: List[(Int, List[Any])]): Seq[A] = indexedRows match {
     // skip all initial empty rows
     case (rowNo, row) :: rest if ! headerFilter(rowNo, row) =>
       readIndexed(rest)
@@ -94,7 +94,7 @@ class SimpleSheetReader[A,B](
   }
 
   /** Read, parse, marshal and bind each row of the body given its corresponding header names */
-  protected def readDataRows(header: List[String], body: List[List[Any]]): List[A] = {
+  protected def readDataRows(header: List[String], body: List[List[Any]]): Seq[A] = {
 
     // note that this incremental counter restarts at the first data row
     // and had nothing to do with the counter started for the headerFilter
@@ -102,7 +102,7 @@ class SimpleSheetReader[A,B](
     Stream.continually(0).zip(body)
       .takeWhile { case (index,row) => keepGoing(index,row) }
       .filter { case (index,row) => dataRowFilter(index,row) }
-      .toList.map { case (index,row) =>
+      .map { case (index,row) =>
         // for each valid indexed data row make a new dedicated row marshaller
         val rowMarshaller = sheetMarshal.makeRow()
         // pair up each header name with the corresponding data cell
@@ -148,8 +148,8 @@ object SimpleSheetReader {
       rowBuilder: LabelledSheetMarshal[A,B]): SimpleSheetReader[A,B] =
     new SimpleSheetReader(headerFilter, dataRowFilter, keepGoing, rowBuilder)
 
-  /** Create a new SimpleSheetReader with the given rowBuilder instance,
-   *  using `isBlankRow` instances for nonHeaderFilter and blankRowFilter.
+  /** Create a new `SimpleSheetReader` with the given `rowBuilder` instance,
+   *  using `isNonEmptyRow` instances for `headerFilter` and `dataRowFilter`.
    */
   def apply[A,B](rowBuilder: LabelledSheetMarshal[A,B]): SimpleSheetReader[A,B] =
     new SimpleSheetReader(isNonEmptyRow, isNonEmptyRow, neverStop, rowBuilder)

@@ -6,7 +6,6 @@ import com.wapitia.gsheets.GoogleSheetsAccess
 import com.wapitia.spreadsheet.marshal.SimpleSheetReader
 import com.wapitia.financial.marshal.TransactionTemplateMarshaller
 
-
 object GSheetsSandbox1 extends App {
 
   val sheetSID = "1qU3idNFQkVUyfpoF7WTOgbeghM_WNlHV-EoW7KY9hPU"
@@ -17,7 +16,7 @@ object GSheetsSandbox1 extends App {
 //  val rdr = SimpleSheetReader[TransactionTemplate.Builder](new TransactionTemplateMarshaller)
 //  val rows: List[TransactionTemplate] = rdr.read(values).map(_.build())
   val rdr = SimpleSheetReader[TransactionTemplate,TransactionTemplate.Builder](new TransactionTemplateMarshaller)
-  val rows: List[TransactionTemplate] = rdr.read(values)
+  val rows: Seq[TransactionTemplate] = rdr.read(values)
   rows.foreach(println)
 
 }
