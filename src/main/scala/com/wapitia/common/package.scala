@@ -26,6 +26,8 @@ package object common {
    */
   def stringsOf(items: Seq[Any]): Seq[String] = items.map(_.toString)
 
+  def stringsOf(items: List[Any]): List[String] = stringsOf(items.toSeq).toList
+
   /** Bubble to the top the lowest element of `list` according to the
    *  implicit ordering.
    */
