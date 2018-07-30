@@ -4,7 +4,7 @@ package marshal
 
 import com.wapitia.common.marshal.InMarshal
 
-/** Marshals a spreadsheet of data into rows of objects.
+/** Marshals a spreadsheet of data into rows of objects of some type `A`.
  *  This is configured with marshals and binders for each labeled column.
  *
  *  @tparam A finished row object type
@@ -12,7 +12,8 @@ import com.wapitia.common.marshal.InMarshal
  */
 abstract class LabelledSheetMarshal[A,B] {
 
-  type Binder[C] = (RowMarshal,C) => Unit
+  type BinderFunc[C] = ((_ <: RowMarshal,C) => Unit)
+  
 
   /** Accumulator and Builder for each row of data in the spreadsheet */
   trait RowMarshal {
@@ -28,19 +29,18 @@ abstract class LabelledSheetMarshal[A,B] {
   def makeRow(): RowMarshal
 
   val cellMarshalMap = scala.collection.mutable.Map[String,InMarshal[Any,Any]]()
-  val objMarshalMap = scala.collection.mutable.Map[String,(RowMarshal,_) => Unit]()
+  val objMarshalMap = scala.collection.mutable.Map[String,BinderFunc[_]]()
 
   def addMarshal(name: String, marshal: InMarshal[Any,Any]) {
     cellMarshalMap.put(name, marshal)
   }
 
-  def addBinder[RM <: RowMarshal](name: String, binder: (RM,_) => Unit) {
-    // TODO still don't get how to configure objMarshalMap so that asInstanceOf is unneeded
-    objMarshalMap.put(name, binder.asInstanceOf[(RowMarshal,_) => Unit])
+  def addBinder[RM <: RowMarshal](name: String, binder: BinderFunc[_]) {
+    objMarshalMap.put(name, binder)
   }
 
   /** Convenience method to add both a marshal and a binder for one named cell */
-  def marshalChain[RM <: RowMarshal](name: String, marshal: InMarshal[Any,Any], binder: (RM,_) => Unit)  {
+  def marshalChain[RM <: RowMarshal](name: String, marshal: InMarshal[Any,Any], binder: BinderFunc[_])  {
     addMarshal(name, marshal)
     addBinder(name, binder)
   }
@@ -51,7 +51,7 @@ abstract class LabelledSheetMarshal[A,B] {
     val cellMarshal = cellMarshalMap.getOrElse(name, MarshalIdentity).asInstanceOf[InMarshal[Any,C]]
 
     if (!cellMarshal.isNull(rawvalue)) {
-      val buildFunc = objMarshalMap.getOrElse(name, NOOP _).asInstanceOf[Binder[C]]
+      val buildFunc = objMarshalMap.getOrElse(name, NOOP _).asInstanceOf[(RowMarshal,C) => Unit]
       val mval: C = cellMarshal.unmarshal(rawvalue)
       buildFunc(rowMarshal,mval)
     }

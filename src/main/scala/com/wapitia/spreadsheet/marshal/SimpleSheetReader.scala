@@ -2,7 +2,9 @@ package com.wapitia
 package spreadsheet.marshal
 
 /** SimpleSheetReader assumes that some given sheet to parse
- *  contains a single header row followed immediately by the data rows.
+ *  is not tricky, but rather is of the usual form where
+ *  the first non-empty row is the single header row followed 
+ *  immediately by the data rows.
  *  The sheet may be a subsection of some entire google sheet, as delivered
  *  by the remote sheet service.
  *  The header row is considered to be the first row in a provided sheet
@@ -11,7 +13,7 @@ package spreadsheet.marshal
 class SimpleSheetReader[A,B](
     nonHeaderFilter: List[Any] => Boolean,
     blankRowFilter: List[Any] => Boolean,
-    rowBuilder: LabelledSheetMarshal[A,B])
+    sheetMarshal: LabelledSheetMarshal[A,B])
 extends SheetReader[A]
 {
   /**
@@ -36,7 +38,7 @@ extends SheetReader[A]
     // TODO
 //    body.filter(!blankRowFilter(_)) map { row =>
     body map { row =>
-      val rowMarshaller = rowBuilder.makeRow()
+      val rowMarshaller = sheetMarshal.makeRow()
       for ( (k, v) <- header.zip(row) )
         rowMarshaller.set(k, v)
       rowMarshaller.make()
