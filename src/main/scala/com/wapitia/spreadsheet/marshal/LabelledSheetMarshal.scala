@@ -12,8 +12,9 @@ import com.wapitia.common.marshal.InMarshal
  */
 abstract class LabelledSheetMarshal[A,B] {
 
+  type CellMarshal = InMarshal[Any,Any]
   type BinderFunc[C] = ((_ <: RowMarshal,C) => Unit)
-  
+
 
   /** Accumulator and Builder for each row of data in the spreadsheet */
   trait RowMarshal {
@@ -28,10 +29,10 @@ abstract class LabelledSheetMarshal[A,B] {
   /** Start a new row marshal to ingest incoming raw values to produce its object */
   def makeRow(): RowMarshal
 
-  val cellMarshalMap = scala.collection.mutable.Map[String,InMarshal[Any,Any]]()
+  val cellMarshalMap = scala.collection.mutable.Map[String,CellMarshal]()
   val objMarshalMap = scala.collection.mutable.Map[String,BinderFunc[_]]()
 
-  def addMarshal(name: String, marshal: InMarshal[Any,Any]) {
+  def addMarshal(name: String, marshal: CellMarshal) {
     cellMarshalMap.put(name, marshal)
   }
 
@@ -40,7 +41,7 @@ abstract class LabelledSheetMarshal[A,B] {
   }
 
   /** Convenience method to add both a marshal and a binder for one named cell */
-  def marshalChain[RM <: RowMarshal](name: String, marshal: InMarshal[Any,Any], binder: BinderFunc[_])  {
+  def marshalChain[RM <: RowMarshal](name: String, marshal: CellMarshal, binder: BinderFunc[_])  {
     addMarshal(name, marshal)
     addBinder(name, binder)
   }
@@ -51,7 +52,7 @@ abstract class LabelledSheetMarshal[A,B] {
     val cellMarshal = cellMarshalMap.getOrElse(name, MarshalIdentity).asInstanceOf[InMarshal[Any,C]]
 
     if (!cellMarshal.isNull(rawvalue)) {
-      val buildFunc = objMarshalMap.getOrElse(name, NOOP _).asInstanceOf[(RowMarshal,C) => Unit]
+      val buildFunc = objMarshalMap.getOrElse(name, NOOP[RowMarshal,C] _).asInstanceOf[(RowMarshal,C) => Unit]
       val mval: C = cellMarshal.unmarshal(rawvalue)
       buildFunc(rowMarshal,mval)
     }

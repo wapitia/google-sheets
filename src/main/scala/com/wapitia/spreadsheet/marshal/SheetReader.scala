@@ -8,7 +8,7 @@ package marshal
  *
  * The incoming spreadsheet may have a header followed by an ordered
  * list of rows.
- * The header and data rows are Lists of AnyRef.
+ * The header and data rows are Lists of Any.
  * In Google Sheets an unformatted cell contains either:
  *
  *  o An empty String representing an empty or Null value

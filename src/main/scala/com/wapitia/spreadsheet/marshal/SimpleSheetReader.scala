@@ -106,10 +106,10 @@ class SimpleSheetReader[A,B](
         // for each valid indexed data row make a new dedicated row marshaller
         val rowMarshaller = sheetMarshal.makeRow()
         // pair up each header name with the corresponding data cell
-        // and marshal that named value into the rowMarshaller, which
-        // will be building the resultant output object.
+        // and marshal that name/value pair into the rowMarshaller, which
+        // is building the resultant output object.
         header.zip(row).foreach { case (title, cell) => rowMarshaller.set(title, cell) }
-        // then make the object, the list of each will be the result
+        // then make an object for each row, the sequence of which is the result
         rowMarshaller.make()
       }
   }
