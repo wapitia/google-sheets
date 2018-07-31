@@ -7,8 +7,7 @@ import com.wapitia.common.{Enum,EValue}
  *
  *  @example
  *
- *  Properties file:
- *  {{{
+ *  `
  *  # Properties file
  *  dmv.CO.licence.policy = 30-day w/birthday
  *  dmv.WY.licence.policy = 30-day
@@ -16,8 +15,8 @@ import com.wapitia.common.{Enum,EValue}
  *  dmv.licence.policy = No grace period ${foo}
  *
  *  foo = AT_ANY_TIME_FOR_${state | "UNKNOWN"}!
- *  }}}
  *
+ *  `
  *
  *  Scala usage:
  *  {{{
@@ -37,6 +36,8 @@ import com.wapitia.common.{Enum,EValue}
  *    getLicencePolicy(keyProps, Some["KY"]) // returns "working-on-it, perhaps"
  *
  *  }}}
+ *
+ *  TODO: This is the plan anyway
  *
  */
 class KeyedProperties(props: JavaProperties, keySubstitution: KeySubstitutionFlavor) {
