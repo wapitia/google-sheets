@@ -55,7 +55,8 @@ class KeyedProperties(props: JavaProperties, keySubstitution: KeySubstitutionFla
 
   def getKeyedProperty(keyMaps: Map[String,Option[String]], key: String): Option[String] = getKeyedProperty(keyMaps, key, None)
 
-  def getKeyedProperty(keyMaps: Map[String,Option[String]], key: String, defaultValue: String): Option[String] = getKeyedProperty(keyMaps, key, Some(defaultValue))
+  def getKeyedProperty(keyMaps: Map[String,Option[String]], key: String, defaultValue: String): Option[String] =
+    getKeyedProperty(keyMaps, key, Some(defaultValue))
 
   // TODO
   def getKeyedProperty(keyMaps: Map[String,Option[String]], key: String, optDefault: Option[String]): Option[String] = {
@@ -82,17 +83,23 @@ object KeyedProperties {
 
   def apply(props: JavaProperties, keySubstitution: KeySubstitutionFlavor) = new  KeyedProperties(props, keySubstitution)
 
-  def load(is: java.io.InputStream): KeyedProperties = builder().fromInputStream(is).build()
+  def load(is: java.io.InputStream): KeyedProperties =
+    builder().fromInputStream(is).build()
 
-  def load(reader: java.io.Reader): KeyedProperties = builder().fromReader(reader).build()
+  def load(reader: java.io.Reader): KeyedProperties =
+    builder().fromReader(reader).build()
 
-  def load(mappedProps: Map[String,String]): KeyedProperties = builder().fromMappedProperties(mappedProps).build()
+  def load(mappedProps: Map[String,String]): KeyedProperties =
+    builder().fromMappedProperties(mappedProps).build()
 
-  def load(is: java.io.InputStream, keyProps: KeyedProperties): KeyedProperties = builder().fromInputStream(is).defaults(keyProps.javaProperties).build()
+  def load(is: java.io.InputStream, keyProps: KeyedProperties): KeyedProperties =
+    builder().fromInputStream(is).defaults(keyProps.javaProperties).build()
 
-  def load(reader: java.io.Reader, keyProps: KeyedProperties): KeyedProperties = builder().fromReader(reader).defaults(keyProps.javaProperties).build()
+  def load(reader: java.io.Reader, keyProps: KeyedProperties): KeyedProperties =
+    builder().fromReader(reader).defaults(keyProps.javaProperties).build()
 
-  def load(mappedProps: Map[String,String], keyProps: KeyedProperties): KeyedProperties = builder().fromMappedProperties(mappedProps).defaults(keyProps.javaProperties).build()
+  def load(mappedProps: Map[String,String], keyProps: KeyedProperties): KeyedProperties =
+    builder().fromMappedProperties(mappedProps).defaults(keyProps.javaProperties).build()
 
   def builder() = new Builder(DefaultKeySubsitutionFlavor, None, None, None, None)
 
