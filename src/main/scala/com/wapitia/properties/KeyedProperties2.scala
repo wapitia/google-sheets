@@ -1,7 +1,7 @@
-package com.wapitia.properties
+package com.wapitia
+package properties
 
 import java.util.{Properties => JavaProperties}
-import com.wapitia.common.{Enum,EValue}
 
 /** KeyedProperties extends the Java `Properties` object with wildcards access.
  *
@@ -40,7 +40,7 @@ import com.wapitia.common.{Enum,EValue}
  *  TODO: This is the plan anyway
  *
  */
-class KeyedProperties(props: JavaProperties, keySubstitution: KeySubstitutionFlavor) {
+class KeyedProperties2(props: JavaProperties, keySubstitution: KeySubstitutionFlavor) {
 
   // public access to underlying java Properties so that they might be stored externally, etc.
   val javaProperties = props
@@ -66,7 +66,7 @@ class KeyedProperties(props: JavaProperties, keySubstitution: KeySubstitutionFla
 
 }
 
-object KeyedProperties {
+object KeyedProperties2 {
 
   import KeySubstitutionFlavor._
 
@@ -74,22 +74,22 @@ object KeyedProperties {
 
   def apply(props: JavaProperties, keySubstitution: KeySubstitutionFlavor) = new  KeyedProperties(props, keySubstitution)
 
-  def load(is: java.io.InputStream): KeyedProperties =
+  def load(is: java.io.InputStream): KeyedProperties2 =
     builder().fromInputStream(is).build()
 
-  def load(reader: java.io.Reader): KeyedProperties =
+  def load(reader: java.io.Reader): KeyedProperties2 =
     builder().fromReader(reader).build()
 
-  def load(mappedProps: Map[String,String]): KeyedProperties =
+  def load(mappedProps: Map[String,String]): KeyedProperties2 =
     builder().fromMappedProperties(mappedProps).build()
 
-  def load(is: java.io.InputStream, keyProps: KeyedProperties): KeyedProperties =
+  def load(is: java.io.InputStream, keyProps: KeyedProperties2): KeyedProperties2 =
     builder().fromInputStream(is).defaults(keyProps.javaProperties).build()
 
-  def load(reader: java.io.Reader, keyProps: KeyedProperties): KeyedProperties =
+  def load(reader: java.io.Reader, keyProps: KeyedProperties2): KeyedProperties2 =
     builder().fromReader(reader).defaults(keyProps.javaProperties).build()
 
-  def load(mappedProps: Map[String,String], keyProps: KeyedProperties): KeyedProperties =
+  def load(mappedProps: Map[String,String], keyProps: KeyedProperties2): KeyedProperties2 =
     builder().fromMappedProperties(mappedProps).defaults(keyProps.javaProperties).build()
 
   def builder() = new Builder(DefaultKeySubsitutionFlavor, None, None, None, None)
@@ -116,7 +116,7 @@ object KeyedProperties {
     def defaults(javaProps: JavaProperties): Builder =
       new Builder(keySubstitutionFlavor, fromInputStreamOpt, fromReaderOpt, mappedPropsOpt, Some(javaProps))
 
-    def build(): KeyedProperties = {
+    def build(): KeyedProperties2 = {
       val jProps: JavaProperties = defaultJavPropsOpt match {
         case Some(defaults) => new JavaProperties(defaults)
         case None           => new JavaProperties()
@@ -125,7 +125,7 @@ object KeyedProperties {
       fromReaderOpt.map(loadIntoJavaProperties(_, jProps))
       mappedPropsOpt.map(loadIntoJavaProperties(_, jProps))
 
-      new KeyedProperties(jProps, keySubstitutionFlavor)
+      new KeyedProperties2(jProps, keySubstitutionFlavor)
     }
 
   }

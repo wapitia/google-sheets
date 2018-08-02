@@ -1,0 +1,19 @@
+<scalastyle commentFilter="enabled">
+  <name>Wapitia standard configuration</name>
+  <check level="warning" class="org.scalastyle.file.FileTabChecker"
+    enabled="true" />
+  <check level="warning" class="org.scalastyle.file.FileLengthChecker"
+    enabled="true">
+    <parameters>
+      <parameter name="maxFileLength">300</parameter>
+    </parameters>
+  </check>
+  <check enabled="true" class="org.scalastyle.file.IndentationChecker"
+    level="warning">
+    <parameters>
+      <parameter name="tabSize">2</parameter>
+      <parameter name="methodParamIndentSize">4</parameter>
+      <parameter name="classParamIndentSize">4</parameter>
+    </parameters>
+  </check>
+</scalastyle>

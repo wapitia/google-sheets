@@ -34,10 +34,10 @@ class RBMetaProperties(props: JavaProperties) {
   def getProperty(name: String): Option[String] = {
     val subName = "suite"
     val subsList = List(
-        PropSub(name, "{" + subName + "}", 0),
-        PropSub(name, "{" + subName + ".}", 1),
-        PropSub(name, "{." + subName + "}", 1),
-        PropSub(name, "{." + subName + ".}", 2))
+      PropSub(name, "{" + subName + "}", 0),
+      PropSub(name, "{" + subName + ".}", 1),
+      PropSub(name, "{." + subName + "}", 1),
+      PropSub(name, "{." + subName + ".}", 2))
     getProperty(name, subsList, suite)
   }
 

@@ -71,11 +71,11 @@ class GoogleSheetsAccess(appName: String, scopes: List[String]) {
    *  @param credentialsFolder the folder where the pre-established credentials are squirreled.
    */
   def loadSheet(
-    sheetSid: String,
-    loadRange: String,
-    valueOption: ValueRenderOption,
-    clientSecretsFile: String,
-    credentialsFolder: String) : List[List[Any]] = {
+      sheetSid: String,
+      loadRange: String,
+      valueOption: ValueRenderOption,
+      clientSecretsFile: String,
+      credentialsFolder: String): List[List[Any]] = {
 
     import scala.collection.JavaConverters._
     import GoogleSheetsAccess._
@@ -170,7 +170,8 @@ class GoogleSheetsAccess(appName: String, scopes: List[String]) {
     clientSecrets
   }
 
-  def packageMessage(filename: String, accessClass: Class[_]) = if (filename.startsWith("/"))
+  def packageMessage(filename: String, accessClass: Class[_]) =
+    if (filename.startsWith("/"))
       s"""file named "$filename" in resources."""
     else {
       val packageName = accessClass.getPackage.getName

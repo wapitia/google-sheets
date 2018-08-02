@@ -9,11 +9,11 @@ import java.time.LocalDate
  *  @param amount the amount of the transaction.
  */
 class Transaction(
-  item: String,
-  date: LocalDate,
-  amount: BigDecimal,
-  source: Account,
-  target: Account)
+    item: String,
+    date: LocalDate,
+    amount: BigDecimal,
+    source: Account,
+    target: Account)
 
 object Transaction {
 
