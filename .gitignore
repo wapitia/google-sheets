@@ -3,6 +3,5 @@ target/
 .cache-tests
 .classpath*
 .project*
-bin/
 .settings/
 credentials/
