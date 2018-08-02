@@ -35,7 +35,7 @@ package common
  *  @tparam A The type of the enum, self-reflective as in
  *            trait `Z extends Z.Value with EValue[Z]`
  */
-@Deprecated // Scala 3 introduces Enumeration at which point most of this is moot
+@deprecated("Scala 3 introduces Enumeration at which point most of this is moot", "Scala 3")
 trait EValue[A] {
   self: A=>
 

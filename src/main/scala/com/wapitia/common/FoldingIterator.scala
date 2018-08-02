@@ -30,9 +30,9 @@ class FoldingIterator[A](iters: Seq[Iterator[A]])(implicit tComp: Ordering[A]) e
    *  This list is initialized from the given `iters`, wrapped
    *  in BufferedIterators and only those that are populated are
    *  retained.
-   *  `remIters` is variable because the list is replaced by the [[next()]] 
+   *  `remIters` is variable because the list is replaced by the [[next()]]
    *  function as its iterator elements become empty.
-   *  Each of the iterator items `iter` are wrapped as 
+   *  Each of the iterator items `iter` are wrapped as
    *  `BufferedIterator`s (BI's) since we'll want to peek at the heads of the
    *  iterators while comparing them to others and before popping them.
    */
@@ -73,5 +73,4 @@ object FoldingIterator {
   /** Interleave a sequence of streams producing a combined stream. */
   def interleave[A](seq: Seq[Stream[A]])(implicit tComp: Ordering[A]): Stream[A] =
     interleave(seq.map(_.toIterator))(tComp).toStream
-
 }

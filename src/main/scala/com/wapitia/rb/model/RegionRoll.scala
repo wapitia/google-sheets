@@ -33,8 +33,7 @@ object WhiteRoll extends Enum[WhiteRoll] {
 class RegionRoll(blackRoll: BlackRoll, whiteRoll: WhiteRoll, region: Region)
 
 object RegionRoll {
-  
-  def apply(blackRoll: BlackRoll, whiteRoll: WhiteRoll, region: Region) = 
+
+  def apply(blackRoll: BlackRoll, whiteRoll: WhiteRoll, region: Region) =
     new RegionRoll(blackRoll, whiteRoll, region)
-  
 }

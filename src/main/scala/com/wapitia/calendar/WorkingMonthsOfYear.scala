@@ -8,8 +8,7 @@ trait WorkingMonthsOfYear {
 
   /** An ordered list of the month numbers in the valid set for this year.
    *  From 1 (January) to 12 (December).
-   *  List is monotonically increasing. May be empty. 
+   *  List is monotonically increasing. May be empty.
    */
   def inYear(date: LocalDate): List[Int]
-  
 }

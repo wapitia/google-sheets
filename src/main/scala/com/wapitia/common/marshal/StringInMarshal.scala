@@ -10,5 +10,4 @@ class StringInMarshal extends InMarshal[Any,String] {
    * @param v The value to be converted. Can be null.
    */
   override def unmarshal(v: Any): String = v.toString
-  
 }

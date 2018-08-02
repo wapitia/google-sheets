@@ -5,9 +5,9 @@ import java.util.{Properties => JavaProperties}
 /** Extension to Java Properties functionality */
 package object properties {
   // TODO this is screaming for macros
-  
+
   // == java.io.InputStream interface ==
-  
+
   /** Create and load a new `java.util.Properties` instance from an `InputStream`.
    *  @throws IOException if the input read cannot be read.
    */
@@ -18,7 +18,7 @@ package object properties {
     javaProps
   }
 
-  /** Create and load a new `java.util.Properties` instance from an `InputStream` 
+  /** Create and load a new `java.util.Properties` instance from an `InputStream`
    *  with some base `defaults`.
    *  @throws IOException if the input read cannot be read.
    */
@@ -36,9 +36,9 @@ package object properties {
   def loadIntoJavaProperties(is: java.io.InputStream, javaProps: JavaProperties) {
     javaProps.load(is)
   }
- 
+
   // == java.io.Reader interface ==
-  
+
   /** Load a new `java.util.Properties` instance from a `Reader`.
    *  @throws IOException if the input read cannot be read.
    */
@@ -58,7 +58,7 @@ package object properties {
     loadIntoJavaProperties(reader, javaProps)
     javaProps
   }
-  
+
   /** Populate an existing `java.util.Properties` instance from an `InputStream`.
    *  @throws IOException if the input read cannot be read.
    */
@@ -67,9 +67,8 @@ package object properties {
     javaProps.load(reader)
   }
 
- 
   // == Map[String,String] interface ==
-  
+
   /** Load a new `java.util.Properties` instance from a `Map[String,String]`.
    *  @throws IOException if the input read cannot be read.
    */
@@ -87,7 +86,7 @@ package object properties {
     loadIntoJavaProperties(mappedProps, javaProps)
     javaProps
   }
-  
+
   /** Populate an existing `java.util.Properties` instance from a `Map[String,String]`.
    *  @throws IOException if the input read cannot be read.
    */

@@ -1,5 +1,5 @@
 <scalastyle commentFilter="enabled">
-  <name>Wapitia standard configuration</name>
+  <name>Wapitia standard scala style</name>
   <check level="warning" class="org.scalastyle.file.FileTabChecker"
     enabled="true" />
   <check level="warning" class="org.scalastyle.file.FileLengthChecker"
@@ -8,12 +8,16 @@
       <parameter name="maxFileLength">300</parameter>
     </parameters>
   </check>
-  <check enabled="true" class="org.scalastyle.file.IndentationChecker"
-    level="warning">
+  <check level="warning" class="org.scalastyle.file.IndentationChecker"
+    enabled="true">
     <parameters>
       <parameter name="tabSize">2</parameter>
       <parameter name="methodParamIndentSize">4</parameter>
       <parameter name="classParamIndentSize">4</parameter>
     </parameters>
   </check>
+  <check level="warning" class="org.scalastyle.file.NewLineAtEofChecker" enabled="true" />
+  <check level="warning" class="org.scalastyle.file.WhitespaceEndOfLineChecker" enabled="true" />
+  <check level="warning" class="org.scalastyle.scalariform.DeprecatedJavaChecker" enabled="true" />
+  <check enabled="false" class="org.scalastyle.scalariform.MagicNumberChecker" level="warning" />
 </scalastyle>
