@@ -98,6 +98,7 @@ trait EValue[A] {
  * @tparam A The type of the enum which must also extend `EValue` as in
  *           object `Z` extends `Enum[Z]`
  */
+@deprecated("Scala 3 introduces Enumeration at which point most of this is moot", "Scala 3")
 trait Enum[A <: EValue[A]] {
   /** Enum values must extend the type parameter */
   trait Value { self: A=> }
