@@ -1,16 +1,18 @@
 package com.wapitia.calendar
 
-import java.time.DayOfWeek
-import java.time.LocalDate
+import java.time.{DayOfWeek, LocalDate}
+import org.junit.Test
 
-object TestMonthlySchedule extends App {
+class MonthlyScheduleTest {
 
+  val jan2 = LocalDate.of(2018, 1, 2)
+  val feb2 = LocalDate.of(2018, 2, 2)
+  val mar2 = LocalDate.of(2018, 3, 2)
+  val apr2 = LocalDate.of(2018, 4, 2)
+  val may2 = LocalDate.of(2018, 5, 2)
+
+  @Test
   def testCycleMonth() {
-    val jan2 = LocalDate.of(2018, 1, 2)
-    val feb2 = LocalDate.of(2018, 2, 2)
-    val mar2 = LocalDate.of(2018, 3, 2)
-    val apr2 = LocalDate.of(2018, 4, 2)
-    val may2 = LocalDate.of(2018, 5, 2)
 
     println("problem child...")
       // problem child
@@ -30,9 +32,10 @@ object TestMonthlySchedule extends App {
     assert(-1 == MonthlySchedule.cycleMonth0(jan2, 3, 2) )
   }
 
+  @Test
   def testFunCycleMonthOnOrBefore() {
 
-    assert(LocalDate.of(2017, 12, 1) == MonthlySchedule.cycleMonthOnOrBefore(LocalDate.of(2018, 1, 2), 2, 1) )
+    assert(LocalDate.of(2017, 12, 1) == MonthlySchedule.cycleMonthOnOrBefore(LocalDate.of(2018, 1, 2), monthCycle=2, monthOffset=1) )
 
 //    assert(LocalDate.of(2018, 3, 1) == MonthlySchedule.cycleMonthOnOrBefore(LocalDate.of(2018, 3, 2), 1, 0) )
 //
@@ -42,20 +45,18 @@ object TestMonthlySchedule extends App {
 
   }
 
+  @Test
   def testMonthlySched1() {
     val ms1: Schedule = (MonthlySchedule.builder()).monthly(2).build
     val dateStrm: Stream[LocalDate] = ms1.onOrAfter(LocalDate.of(2018, 3, 1))
     dateStrm.take(19).foreach(println(_))
   }
 
+  @Test
   def testMonthlySched2() {
     val ms1: Schedule = (MonthlySchedule.builder()).monthly(2).build
     val dateStrm: Stream[LocalDate] = ms1.onOrAfter(LocalDate.of(2018, 3, 1))
     dateStrm.take(19).foreach(println(_))
   }
-
-//  testCycleMonth()
-  testMonthlySched1()
-//  testFunCycleMonthOnOrBefore()
 
 }

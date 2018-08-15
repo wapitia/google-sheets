@@ -3,38 +3,34 @@ package io
 
 import java.io.{InputStream => JInStream, Reader => JReader, PipedInputStream => JPipedIn}
 
-/** Creates an InputStream wrapping a user supplied Reader */
+/** Creates a `java.io.InputStream` instance wrapping a user supplied `java.io.Reader` */
 object ReaderInputStream {
 
-  val NoEncoding: String = null.asInstanceOf[String]
+  val DefaultCharset: String = java.nio.charset.Charset.defaultCharset().name()
 
-  def apply(reader: JReader, encoding: String): JInStream = readerStreamEngine(reader, encoding)
+  def apply(reader: JReader): JPipedIn = apply(reader, DefaultCharset)
 
-  def apply(reader: JReader): JInStream = readerStreamEngine(reader, NoEncoding)
-
-  def readerStreamEngine(reader: JReader, encoding: String): JPipedIn = {
+  def apply(reader: JReader, encoding: String): JPipedIn = {
     val in = new JPipedIn()
-    val piper = new PipeReaderToStreamRunnable(in, reader, encoding)
-    new Thread(piper).start()
+    new Thread(new PipeReaderToStreamRunnable(in, reader, encoding)).start()
     in
   }
 
   class PipeReaderToStreamRunnable(sink: JPipedIn, reader: JReader, encoding: String) extends java.lang.Runnable {
 
+    // read chunk size
     val CharBufSize = 16384
+
+    // what java.io considers to be the integer defining the end-of-input "character"
     val EndOfInput = -1
 
-    val out = new java.io.PipedOutputStream(sink)
-    val writer = if (encoding == NoEncoding)
-      new java.io.OutputStreamWriter(out)
-    else
-      new java.io.OutputStreamWriter(out, encoding)
-
-    val buf = new Array[Char](CharBufSize)
+    private[this] val out = new java.io.PipedOutputStream(sink)
+    private[this] val writer = new java.io.OutputStreamWriter(out, encoding)
+    private[this] val buf = new Array[Char](CharBufSize)
 
     override def run() {
       try {
-        Stream.continually(reader.read(buf)).takeWhile(_ != -1).foreach { n =>
+        Stream.continually(reader.read(buf)).takeWhile(_ != EndOfInput).foreach { n =>
           sink.synchronized {
             writer.write(buf, 0, n)
           }

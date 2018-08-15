@@ -5,7 +5,7 @@ import com.wapitia.spreadsheet.marshal.SimpleSheetReader
 import org.junit.Assert._
 import org.junit.Test
 
-class TestSpreadsheetX {
+class SpreadsheetTest {
 
   val sampleSheet: List[List[Any]] = List(
     List(),
@@ -25,13 +25,7 @@ class TestSpreadsheetX {
     val rdr = SimpleSheetReader[AcctMock,AcctMock.Builder](mrsh)
     val rows: Seq[AcctMock] = rdr.read(sampleSheet)
     rows.foreach(r => println(r))
-    assertTrue(rows.map(_.toString()) == expectedSheet)
+    assertEquals(expectedSheet, rows.map(_.toString()))
   }
 
-}
-
-object TestSpreadsheetX extends App {
-
-  val testInst = new TestSpreadsheetX
-  testInst.testGoogleSheets()
 }
