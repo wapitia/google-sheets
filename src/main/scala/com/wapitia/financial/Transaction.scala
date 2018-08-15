@@ -8,7 +8,12 @@ import java.time.LocalDate
  *  @param date the date of the transaction.
  *  @param amount the amount of the transaction.
  */
-class Transaction(item: String, date: LocalDate, amount: BigDecimal, source: Account, target: Account)
+class Transaction(
+    item: String,
+    date: LocalDate,
+    amount: BigDecimal,
+    source: Account,
+    target: Account)
 
 object Transaction {
 
@@ -16,7 +21,7 @@ object Transaction {
    *  indicate a positive flow from target back to source.
    */
   def apply(item: String, date: LocalDate, amount: BigDecimal, source: Account, target: Account): Transaction =
-      new Transaction(item, date, amount, target, source)
+    new Transaction(item, date, amount, target, source)
 
   /** Create a positive-flow transaction, ensuring that the resultant amount
    *  is positive (or non-negative), by flipping the amount and switching

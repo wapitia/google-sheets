@@ -15,14 +15,13 @@ trait DayOfMonthAdjust {
  *  No adjusting takes place, which is risky.
  */
 class DayOfMonthIdentity(dayOfMonth: Int) extends DayOfMonthAdjust {
-  
+
   override def dayOfMonthOf(month: LocalDate): Int = dayOfMonth
-  
+
 }
 
 class DayOfMonthBounded(dayOfMonth: Int) extends DayOfMonthAdjust {
-  
-  override def dayOfMonthOf(month: LocalDate): Int = dayOfMonth.max(1).min(month.lengthOfMonth)
-  
-}
 
+  override def dayOfMonthOf(month: LocalDate): Int = dayOfMonth.max(1).min(month.lengthOfMonth)
+
+}

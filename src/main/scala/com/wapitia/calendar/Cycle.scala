@@ -6,7 +6,7 @@ import com.wapitia.common.{Enum,EValue}
 /** Enumeration of common canonical periodic schedule cycles,
  *  though ad-hoc cycle durations are possible in the Wapitia calendar system.
  *
- *  {{{  
+ *  {{{
  *    enum Cycle(daysInCycle: Int, monthsInCycle: Int) {
  *      case Daily extends Cycle(1, 0)
  *      case BiDaily extends Cycle(2, 0)
@@ -17,7 +17,7 @@ import com.wapitia.common.{Enum,EValue}
  *      case Quarterly extends Cycle(0, 3)
  *      case SemiAnnually extends Cycle(0, 6)
  *      case Annually extends Cycle(0, 12)
- *      
+ *
  *      def asDays: Double = ...
  *      def asMonths: Double = ...
  *    }
@@ -26,7 +26,7 @@ import com.wapitia.common.{Enum,EValue}
 sealed trait Cycle extends Cycle.Value with EValue[Cycle] {
   val daysInCycle: Int
   val monthsInCycle: Int
-  
+
   val asDays: Double = monthsInCycle.asInstanceOf[Double] * DaysPerMonth + daysInCycle.asInstanceOf[Double]
   val asMonths: Double = monthsInCycle.asInstanceOf[Double] + daysInCycle.asInstanceOf[Double] / DaysPerMonth
 }
@@ -41,6 +41,6 @@ object Cycle extends Enum[Cycle] {
   case object Quarterly extends Cycle{ val daysInCycle = 0; val monthsInCycle = 3 }
   case object SemiAnnually extends Cycle{ val daysInCycle = 0; val monthsInCycle = 6 }
   case object Annually extends Cycle{ val daysInCycle = 0; val monthsInCycle = 12 }
-  
+
   val enumValues = List(Daily, BiDaily, Weekly, BiWeekly, Monthly, BiMonthly, Quarterly, SemiAnnually, Annually)
 }

@@ -8,21 +8,20 @@ import java.time.temporal.ChronoUnit._
 import scala.collection.BitSet
 
 /** A schedule object suitable for creating a stream of daily-based dates.
- *  Day-like Schedules include daily, weekly, biweekly, semi-weekly, 
+ *  Day-like Schedules include daily, weekly, biweekly, semi-weekly,
  *  anything that aligns with some constant multiple of days.
- * 
+ *
  *  @param nCycleDays the number of days in the cycle
  *  @param dayOffset starting offset within cycle, relative to com.wapitia.calendar.JAVA_DATE_DAY_0
  *  @param fCycleSheduleDayMap given a date in some cycle, the function provides a BitSet whose
- *                     size is nCycleDays and whose bits represent valid candidate days in the schedule, 
+ *                     size is nCycleDays and whose bits represent valid candidate days in the schedule,
  *                     relative to the first day in the cycle.
  */
-case class DailySchedule(nCycleDays: Int, dayOffset: Int, fCycleSheduleDayMap: LocalDate => BitSet) 
-extends Schedule 
-{
+case class DailySchedule(nCycleDays: Int, dayOffset: Int, fCycleSheduleDayMap: LocalDate => BitSet)
+extends Schedule {
 
   import DailySchedule._
-  
+
   override def onOrAfter(onOrAfterDate: LocalDate): Stream[LocalDate] = {
     val acd: LocalDate = cycleAnchorDate(onOrAfterDate)
     assert(acd.toEpochDay() <= onOrAfterDate.toEpochDay())
@@ -30,37 +29,35 @@ extends Schedule
     val res = chunkCycleStream(onOrAfterDate, acd, nCycleDays, fCycleSheduleDayMap)
     res
   }
-  
-  
+
   /** The first day (day 0) of the cycle in which onOrAfterDate resides,
-  // according to nCycleDays and dayOffset. 
+  // according to nCycleDays and dayOffset.
    *
    */
   def cycleAnchorDate(onOrAfterDate: LocalDate): LocalDate = DailySchedule.cycleAnchorDate(onOrAfterDate, nCycleDays, dayOffset)
 }
 
 object DailySchedule {
-  
+
   import DayOfWeek._
-  
+
   val DayOfWeekOffset = dayOfWeekOffset(Epoch.getDayOfWeek, 0)
-  
+
   def builder(nCycleDays: Int, dayOffset: Int) = new Builder(
-    nCycleDays = nCycleDays,
-    dayOffset = dayOffset,
-    validfCycleSheduleDayMapOpt = None,
-    flagAllfCycleSheduleDayMap = false)
-  
+      nCycleDays = nCycleDays,
+      dayOffset = dayOffset,
+      validfCycleSheduleDayMapOpt = None,
+      flagAllfCycleSheduleDayMap = false)
+
   /** Every day is a day of the schedule */
   def daily() = builder(1,0)
-  
-  
+
   /** Builder traverses weekly, starting at a particular day of the week. */
   def weekly(startDayOfWeek: DayOfWeek): Builder = mutipleWeekly(1, startDayOfWeek, 0)
-  
+
   /** Builder traverses weekly with the week starting on Sunday. */
   def weeklyStartingSunday(): Builder = weekly(SUNDAY)
-      
+
   /** Builder traverses weekly, starting at a particular day of the week. */
   def mutipleWeekly(weeksInCycle: Int, startDayOfWeek: DayOfWeek, startCycleWeekOffset: Int): Builder = {
     require(weeksInCycle > 0)
@@ -70,19 +67,19 @@ object DailySchedule {
   }
 
   /** Builder traverses weekly, starting at a particular day of the week. */
-  def mutipleWeekly(weeksInCycle: Int, startDayOfWeek: DayOfWeek, withFirstWeekInCycleHavingDate: LocalDate): Builder = 
+  def mutipleWeekly(weeksInCycle: Int, startDayOfWeek: DayOfWeek, withFirstWeekInCycleHavingDate: LocalDate): Builder =
     builder(DaysPerWeek * weeksInCycle, startCycleWeekOffset(withFirstWeekInCycleHavingDate, weeksInCycle, startDayOfWeek))
 
   /**
    * The Daily Schedule builder starts with the number of days in the cycle and
    * an offset indicating the start day(s) of the cycle.
-   * 
+   *
    * @param nCycleDays is the number of days in the cycle, and can be any positive integer.
    *                     1 means daily, 2 means every two days, 7 means weekly, etc.
    * @param dayOffset indicates the first day of the cycle. It is a modulo of nCycleDays,
    *                     so must be between 0 and (nCycleDays-1)
    *                     This is relative to the Wapita calendar EPOCH (1970-01-01).
-   *                     In other words to start on 1970-01-01, dayOffset would be 0.             
+   *                     In other words to start on 1970-01-01, dayOffset would be 0.
    */
   class Builder(
       nCycleDays: Int,
@@ -93,9 +90,9 @@ object DailySchedule {
     require(nCycleDays > 0, "number of days in cycle must be some positive integer")
     require(dayOffset >= 0, "dayOffset must be zero or a positive integer")
     require(dayOffset < nCycleDays, "dayOffset must be less than the number of days in the cycle")
-    
+
     /** Builder traverses every day. Cycle Number of Days is 1, and offset is 0. */
-      
+
     def withCycleSheduleDayMapFunction(fCycleSheduleDayMapFunc: LocalDate => BitSet) = new Builder(nCycleDays, dayOffset, Some(fCycleSheduleDayMapFunc), false)
 
     /**
@@ -105,15 +102,15 @@ object DailySchedule {
     def withCycleDays(cycleDays: Int*) = withCycleSheduleDayMapFunction(_ => cycleSheduleDayMap(cycleDays))
 
     /** Set the cyclic day(s) of the week in which the schedule falls.
-     *  REQUIREMENT: The number of days in the cycle (parameter 'nCycleDays) must be a multiple of the DAYS_PER_WEEK, 7.  
+     *  REQUIREMENT: The number of days in the cycle (parameter 'nCycleDays) must be a multiple of the DAYS_PER_WEEK, 7.
      */
     def withWeekDayOffsetsInCycle( dows: (Int, DayOfWeek)*) = {
       require(nCycleDays % DaysPerWeek == 0)
       withCycleDays(dows.map(tup => tup._1 * DaysPerWeek + dayOfWeekOffset(tup._2, dayOffset)): _*)
     }
-      
+
     /** Set the cyclic day(s) of the week in which the schedule falls.
-     *  REQUIREMENT: The number of days in the cycle (parameter 'nCycleDays) must be a multiple of the DAYS_PER_WEEK, 7.  
+     *  REQUIREMENT: The number of days in the cycle (parameter 'nCycleDays) must be a multiple of the DAYS_PER_WEEK, 7.
      */
     def withWeekDaysInCycle(dows: DayOfWeek*) = {
       require(nCycleDays % DaysPerWeek == 0)
@@ -121,28 +118,29 @@ object DailySchedule {
       println(dayOffsets mkString ", ")
       withCycleDays(dayOffsets: _*)
     }
-    
+
     def weekdays() = withWeekDaysInCycle(MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY)
-    
+
     def weekends() = withWeekDaysInCycle(SUNDAY, SATURDAY)
-    
-    def withAllfCycleSheduleDayMap() = new Builder(nCycleDays, dayOffset, None, flagAllfCycleSheduleDayMap = true) 
-    
+
+    def withAllfCycleSheduleDayMap() = new Builder(nCycleDays, dayOffset, None, flagAllfCycleSheduleDayMap = true)
+
     def build(): DailySchedule = {
       val modDayOffset = dayOffset % nCycleDays
-      val validfCycleSheduleDayMap = if (flagAllfCycleSheduleDayMap)
+      val validfCycleSheduleDayMap =
+        if (flagAllfCycleSheduleDayMap)
           (ld: LocalDate) => everyDayMap(nCycleDays)
-        else 
+        else
           validfCycleSheduleDayMapOpt.getOrElse((ld: LocalDate) => everyDayMap(nCycleDays))
+
       new DailySchedule(
-        nCycleDays = nCycleDays, 
-        dayOffset = modDayOffset, 
+        nCycleDays = nCycleDays,
+        dayOffset = modDayOffset,
         fCycleSheduleDayMap = validfCycleSheduleDayMap)
     }
   }
-  
+
   def dayOfWeekOffset(dow: DayOfWeek, cycleStartDayOffset: Int): Int = {
-//    val res = dow.ordinal() - Epoch.getDayOfWeek.ordinal()
     val dowo = dow.ordinal()
     val res = dow.ordinal() - cycleStartDayOffset
     if (res < 0) res + DaysPerWeek
@@ -150,30 +148,29 @@ object DailySchedule {
   }
 
   def dayOfWeekOffsetX(dow: DayOfWeek, nCycleDays: Int, dayOffset: Int): Int = {
-//    val res = dow.ordinal() - Epoch.getDayOfWeek.ordinal()
     val dowo = dow.ordinal
     val res = dow.ordinal - dayOffset
     if (res < 0) res + DaysPerWeek
     else res
   }
 
-  /** Calculate the day offset 
-   *  
+  /** Calculate the day offset
+   *
    */
   def startCycleWeekOffset(withFirstWeekInCycleHavingDate: LocalDate, weeksInCycle: Int, startDayOfWeek: DayOfWeek): Int = {
     ???
   }
-  
+
   def calcCycleWeekOffset(startDayOfWeek: DayOfWeek, startCycleWeekOffset: Int): Int = {
-    startCycleWeekOffset * DaysPerWeek + DayOfWeekOffset    
+    startCycleWeekOffset * DaysPerWeek + DayOfWeekOffset
   }
-  
+
   def cycleSheduleDayMap(cycleDays: Seq[Int]): BitSet = BitSet(cycleDays: _*)
-  
+
   def everyDayMap(cycle: Int): BitSet = BitSet(0 to (cycle-1): _*)
 
   /** The first day (day 0) of the cycle in which onOrAfterDate resides,
-   * according to nCycleDays and dayOffset. 
+   * according to nCycleDays and dayOffset.
    */
   def cycleAnchorDate(onOrAfterDate: LocalDate, nCycleDays: Int, dayOffset: Int): LocalDate = {
     val bde: Long = (dayOffset - onOrAfterDate.toEpochDay()) % nCycleDays
@@ -181,30 +178,31 @@ object DailySchedule {
     val res = onOrAfterDate.plusDays(baseDateEpoch)
     res
   }
-  
-  /** For some schedule generate a finite stream of all sequential candidate dates which fall on or after 
+
+  /** For some schedule generate a finite stream of all sequential candidate dates which fall on or after
    *  some particular date.
-   *  
+   *
    *  @param onOrAfterDate starting date for the stream of candidate dates
    *  @param cycleAnchorDate date of the first day of the first candidate cycle, a calculated date
    *         normalized to be on or before the `onOrAfterDate, but within nCycleDays of that date
    *  @param nCycleDays the number of days in the schedule, must be a positive integer
-   *  @param fCycleScheduleDayMap function that when given the start date of some cycle will return a bitset 
+   *  @param fCycleScheduleDayMap function that when given the start date of some cycle will return a bitset
    *         whose bits represent each day of that cycle, marking those that are to be added to the schedule stream.
-   * 
+   *
    */
   def chunkCycleStream(onOrAfterDate: LocalDate, cycleAnchorDate: LocalDate, nCycleDays: Int, fCycleSheduleDayMap: LocalDate => BitSet): Stream[LocalDate] = {
-    
+
     require( ! cycleAnchorDate.isAfter(onOrAfterDate))
     require(cycleAnchorDate.isAfter(onOrAfterDate.minusDays(nCycleDays.toLong)))
     require(nCycleDays > 0)
-    
+
     /** Generate a finite stream of the candidate dates for the cycle whose first day is the given start date.
-     *   
+     *
      */
     def chunkSeq(cycleStartDate: LocalDate): Stream[LocalDate] = {
       val candidateBitsInCycle: BitSet = fCycleSheduleDayMap(cycleStartDate)
-      val trueBitSet: BitSet = if (candidateBitsInCycle.isEmpty)
+      val trueBitSet: BitSet =
+        if (candidateBitsInCycle.isEmpty)
           BitSet.empty
         else if (cycleStartDate.isBefore(onOrAfterDate)) {
           val daysToExclude = DAYS.between(cycleStartDate, onOrAfterDate)
@@ -220,14 +218,10 @@ object DailySchedule {
         }
       trueBitSet.toStream.map(i => cycleStartDate.plusDays(i))
     }
-    
-    
+
     def loop(cycleStartDate: LocalDate): Stream[LocalDate] = chunkSeq(cycleStartDate) #::: loop(cycleStartDate.plusDays(nCycleDays))
-    
+
     loop(cycleAnchorDate)
   }
-  
- 
+
 }
-
-

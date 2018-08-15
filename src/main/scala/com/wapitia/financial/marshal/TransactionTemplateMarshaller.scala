@@ -30,19 +30,19 @@ class TransactionTemplateMarshaller extends LabelledSheetMarshal[TransactionTemp
     val intoInt = intMarshal
     val intoCycle = CycleMarshaller.Into
 
-     marshalChain("Item",             intoString, (m: RowBuilder, str: String) =>  m.rb = m.rb.item(str) )
-     marshalChain("Next Transaction", intoDate, (m: RowBuilder, date: LocalDate) =>  m.rb = m.rb.nextTrans(date) )
-     marshalChain("Amount",           intoCurrency, (m: RowBuilder, currency: BigDecimal) =>  m.rb = m.rb.amount(currency) )
-     marshalChain("Cycle",            intoCycle, (m: RowBuilder, v: Cycle) =>   m.rb = m.rb.cycle(v) )
-     marshalChain("CycleRefDate",     intoDate, (m: RowBuilder, date: LocalDate) =>   m.rb = m.rb.cycleRefDate(date) )
-     marshalChain("Max",              intoCurrency, (m: RowBuilder, currency: BigDecimal) =>   m.rb = m.rb.max(currency) )
-     marshalChain("Last Pmt Date",    intoDate, (m: RowBuilder, date: LocalDate) =>  m.rb = m.rb.lastPmtDate(date) )
-     marshalChain("Variable",         intoBool, (m: RowBuilder, bool: Boolean) =>   m.rb = m.rb.variable(bool) )
-     marshalChain("Source",           intoString, (m: RowBuilder, str: String) =>   m.rb = m.rb.source(Account(str)) )
-     marshalChain("Target",           intoString, (m: RowBuilder, str: String) =>  m.rb = m.rb.target(Account(str)) )
-     marshalChain("Pmt Method",       intoString, (m: RowBuilder, str: String) =>  m.rb = m.rb.pmtMethod(str) )
-     marshalChain("cat-ndays",        intoInt, (m: RowBuilder, i: Int) =>   m.rb = m.rb.catNDays(i) )
-     marshalChain("cat-nmonths",      intoInt, (m: RowBuilder, i: Int) =>   m.rb = m.rb.catNMonths(i) )
+    marshalChain("Item",             intoString, (m: RowBuilder, str: String) => m.rb = m.rb.item(str) )
+    marshalChain("Next Transaction", intoDate, (m: RowBuilder, date: LocalDate) => m.rb = m.rb.nextTrans(date) )
+    marshalChain("Amount",           intoCurrency, (m: RowBuilder, currency: BigDecimal) => m.rb = m.rb.amount(currency) )
+    marshalChain("Cycle",            intoCycle, (m: RowBuilder, v: Cycle) => m.rb = m.rb.cycle(v) )
+    marshalChain("CycleRefDate",     intoDate, (m: RowBuilder, date: LocalDate) => m.rb = m.rb.cycleRefDate(date) )
+    marshalChain("Max",              intoCurrency, (m: RowBuilder, currency: BigDecimal) => m.rb = m.rb.max(currency) )
+    marshalChain("Last Pmt Date",    intoDate, (m: RowBuilder, date: LocalDate) => m.rb = m.rb.lastPmtDate(date) )
+    marshalChain("Variable",         intoBool, (m: RowBuilder, bool: Boolean) => m.rb = m.rb.variable(bool) )
+    marshalChain("Source",           intoString, (m: RowBuilder, str: String) => m.rb = m.rb.source(Account(str)) )
+    marshalChain("Target",           intoString, (m: RowBuilder, str: String) => m.rb = m.rb.target(Account(str)) )
+    marshalChain("Pmt Method",       intoString, (m: RowBuilder, str: String) => m.rb = m.rb.pmtMethod(str) )
+    marshalChain("cat-ndays",        intoInt, (m: RowBuilder, i: Int) => m.rb = m.rb.catNDays(i) )
+    marshalChain("cat-nmonths",      intoInt, (m: RowBuilder, i: Int) => m.rb = m.rb.catNMonths(i) )
   }
 
   init()

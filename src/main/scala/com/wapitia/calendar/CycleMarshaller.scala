@@ -3,7 +3,7 @@ package calendar
 
 /** Unmarshal cycle names ("Monthly", "Quarterly", etc) from its String into
  *  the corresponding `Cycle` enum entities.
- *  
+ *
  *  @usage
  *  {{{
  *     addCellMarshaller("Payment Cycle", CycleMarshaller.Into)

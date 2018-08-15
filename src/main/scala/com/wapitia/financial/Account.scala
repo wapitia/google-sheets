@@ -14,4 +14,5 @@ object Account {
 
   def apply(name: String): Account = new Account(name, None)
 
+  def apply(name: String, accountNumber: String): Account = new Account(name, Some(accountNumber))
 }

@@ -8,13 +8,13 @@ package marshal
  *
  * The incoming spreadsheet may have a header followed by an ordered
  * list of rows.
- * The header and data rows are Lists of AnyRef.
- * An unformatted Cell value will contain either:
+ * The header and data rows are Lists of Any.
+ * In Google Sheets an unformatted cell contains either:
  *
  *  o An empty String representing an empty or Null value
  *  o A BigDecimal representing any number including Dates and DateTimes
  *  o A String representing text and boolean types
- *  o Something else?
+ *  o Something else? I haven't seen it
  *
  * Implementations of SheetReader are smart enough to find and parse
  * the header, and then bind each row's cell values to the proper header type

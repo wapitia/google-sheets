@@ -15,7 +15,7 @@ package common
  *   object Toss extends Enum[Toss] {
  *     case object Heads extends Toss
  *     case object Tails extends Toss
- *     val values = List(Heads, Tails)
+ *     val enumValues = List(Heads, Tails)
  *   }
  * }}}
  *
@@ -35,7 +35,7 @@ package common
  *  @tparam A The type of the enum, self-reflective as in
  *            trait `Z extends Z.Value with EValue[Z]`
  */
-@Deprecated // Dotty introduces enum at which point most of this is moot
+@deprecated("Scala 3 introduces Enumeration at which point most of this is moot", "Scala 3")
 trait EValue[A] {
   self: A=>
 
@@ -70,7 +70,7 @@ trait EValue[A] {
  *     case object Weekly extends Cycle{ val daysInCycle = 7 }
  *     case object BiWeekly extends Cycle{ val daysInCycle = 14 }
  *
- *     val values = List(Daily, Weekly, BiWeekly)
+ *     val enumValues = List(Daily, Weekly, BiWeekly)
  *   }
  * }}}
  *
@@ -98,14 +98,15 @@ trait EValue[A] {
  * @tparam A The type of the enum which must also extend `EValue` as in
  *           object `Z` extends `Enum[Z]`
  */
+@deprecated("Scala 3 introduces Enumeration at which point most of this is moot", "Scala 3")
 trait Enum[A <: EValue[A]] {
   /** Enum values must extend the type parameter */
   trait Value { self: A=> }
 
   /** List of `Enum` objects suitable for iteration as in
    *  `Z.values.foreach { z => println(s"$z.name") }.`
-   *  This mirrors the java enum constuct, which has a `values()` method
-   *  returning its list.
+   *  This mirrors the Scala 3 Enumeration construct, which has an
+   *  `enumValues()` method returning its list.
    */
   val enumValues: Iterable[A]
 
@@ -114,8 +115,8 @@ trait Enum[A <: EValue[A]] {
 
   /** Map of `Enum` indexes to corresponding enum values, 0 to n */
   lazy val enumValue: Map[Int,A] = enumValues.zipWithIndex.map {case (v,i) => i -> v }.toMap
-  
+
   /** Map of `Enum` names to corresponding instances */
   lazy val enumValueNamed: Map[String,A] = enumValues.map(v => v.name -> v).toMap
-  
+
 }

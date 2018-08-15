@@ -1,72 +1,219 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.wapitia</groupId>
   <artifactId>google-sheets</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <properties>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <maven.compiler.source>1.8</maven.compiler.source>
+    <!-- java compiler version -->
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+    <!-- dependency versions -->
+    <scala-library-version>2.12.3</scala-library-version>
+    <scala-reflect-version>${scala-library-version}</scala-reflect-version>
+    <google-api-client-version>1.23.0</google-api-client-version>
+    <google-oauth-client-jetty-version>1.23.0</google-oauth-client-jetty-version>
+    <maven-min-version>3.0</maven-min-version>
+
+    <!-- plugin artifact versions -->
+    <maven-clean-plugin-version>2.2</maven-clean-plugin-version>
+    <maven-deploy-plugin-version>2.4</maven-deploy-plugin-version>
+    <maven-install-plugin-version>2.2</maven-install-plugin-version>
+    <maven-jar-plugin-version>2.1-jboss-1</maven-jar-plugin-version>
+    <maven-resources-plugin-version>2.2</maven-resources-plugin-version>
+    <maven-surefire-plugin-version>2.4.2</maven-surefire-plugin-version>
+    <maven-enforcer-plugin-version>3.0.0-M2</maven-enforcer-plugin-version>
+    <maven-compiler-plugin-version>3.8.0</maven-compiler-plugin-version>
+    <build-helper-maven-plugin-version>3.0.0</build-helper-maven-plugin-version>
+    <maven-site-plugin-version>3.7.1</maven-site-plugin-version>
+    <maven-project-info-reports-plugin-version>2.2</maven-project-info-reports-plugin-version>
+    <alchim31-maven-scala-plugin-version>3.4.2</alchim31-maven-scala-plugin-version>
+    <google-api-services-sheets-version>v4-rev493-1.23.0</google-api-services-sheets-version>
   </properties>
   <dependencies>
-  <dependency>
+    <dependency>
       <groupId>com.google.api-client</groupId>
       <artifactId>google-api-client</artifactId>
-      <version>1.23.0</version>
+      <version>${google-api-client-version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.oauth-client</groupId>
       <artifactId>google-oauth-client-jetty</artifactId>
-      <version>1.23.0</version>
+      <version>${google-oauth-client-jetty-version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.apis</groupId>
       <artifactId>google-api-services-sheets</artifactId>
-      <version>v4-rev493-1.23.0</version>
+      <version>${google-api-services-sheets-version}</version>
     </dependency>
-    <!-- 
     <dependency>
       <groupId>org.scala-lang</groupId>
       <artifactId>scala-library</artifactId>
-      <version>2.12.3</version>
+      <version>${scala-library-version}</version>
     </dependency>
-     -->
+    <dependency>
+      <groupId>org.scala-lang</groupId>
+      <artifactId>scala-reflect</artifactId>
+      <version>${scala-reflect-version}</version>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.11</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
       <plugin>
-      <groupId>org.codehaus.mojo</groupId>
-      <artifactId>build-helper-maven-plugin</artifactId>
-      <executions>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>${maven-enforcer-plugin-version}</version>
+        <executions>
           <execution>
-              <id>add-source</id>
-              <phase>generate-sources</phase>
-              <goals>
-                  <goal>add-source</goal>
-              </goals>
-              <configuration>
-                  <sources>
-                      <source>src/main/java</source>
-                      <source>src/main/scala</source>
-                      <source>src/main/resources</source>
-                  </sources>
-              </configuration>
+            <id>enforce-default</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireMavenVersion>
+                  <version>[${maven-min-version},)</version>
+                </requireMavenVersion>
+              </rules>
+            </configuration>
           </execution>
           <execution>
-              <id>add-test-source</id>
-              <phase>generate-sources</phase>
-              <goals>
-                  <goal>add-test-source</goal>
-              </goals>
-              <configuration>
-                  <sources>
-                      <source>src/test/java</source>
-                      <source>src/test/scala</source>
-                      <source>src/test/resources</source>
-                  </sources>
-              </configuration>
+            <id>enforce-clean</id>
+            <phase>pre-clean</phase>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireMavenVersion>
+                  <version>[${maven-min-version},)</version>
+                </requireMavenVersion>
+              </rules>
+            </configuration>
           </execution>
-      </executions>
+          <execution>
+            <id>enforce-site</id>
+            <phase>pre-site</phase>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireMavenVersion>
+                  <version>[${maven-min-version},)</version>
+                </requireMavenVersion>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>${maven-compiler-plugin-version}</version>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>${build-helper-maven-plugin-version}</version>
+        <executions>
+          <execution>
+            <id>add-source</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>src/main/scala</source>
+                <source>src/main/java</source>
+                <source>src/main/resources</source>
+              </sources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>add-test-source</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-test-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>src/test/scala</source>
+                <source>src/test/java</source>
+                <source>src/test/resources</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-site-plugin</artifactId>
+        <version>${maven-site-plugin-version}</version>
+        <configuration>
+          <reportPlugins>
+            <plugin>
+              <artifactId>maven-project-info-reports-plugin</artifactId>
+              <version>${maven-project-info-reports-plugin-version}</version>
+            </plugin>
+            <plugin>
+              <groupId>net.alchim31.maven</groupId>
+              <artifactId>scala-maven-plugin</artifactId>
+              <version>${alchim31-maven-scala-plugin-version}</version>
+              <configuration>
+                <jvmArgs>
+                  <jvmArg>-Xms64m</jvmArg>
+                  <jvmArg>-Xmx1024m</jvmArg>
+                </jvmArgs>
+              </configuration>
+            </plugin>
+          </reportPlugins>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.scalastyle</groupId>
+        <artifactId>scalastyle-maven-plugin</artifactId>
+        <version>1.0.0</version>
+        <configuration>
+          <verbose>false</verbose>
+          <failOnViolation>true</failOnViolation>
+          <includeTestSourceDirectory>true</includeTestSourceDirectory>
+          <failOnWarning>false</failOnWarning>
+          <sourceDirectories>
+            <dir>${project.basedir}/src/main/scala</dir>
+          </sourceDirectories>
+          <testSourceDirectories>
+            <dir>${project.basedir}/src/test/scala</dir>
+          </testSourceDirectories>
+          <configLocation>${project.basedir}/src/make/scalastyle_config.xml</configLocation>
+          <outputFile>${project.basedir}/target/scalastyle/scalastyle-output.xml</outputFile>
+          <outputEncoding>UTF-8</outputEncoding>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
+  <prerequisites>
+    <maven>3.0</maven>
+  </prerequisites>
 </project>

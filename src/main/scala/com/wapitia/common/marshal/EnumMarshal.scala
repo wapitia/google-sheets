@@ -20,9 +20,9 @@ package marshal
  *
  */
 class EnumMarshal[A <: EValue[A]](
-  enumNameMap: Map[String,A],
-  defaultValue: String => A,
-  caseSensitive: Boolean)
+    enumNameMap: Map[String,A],
+    defaultValue: String => A,
+    caseSensitive: Boolean)
   extends InMarshal[Any,A] {
 
   import EnumMarshal._
@@ -80,11 +80,11 @@ object EnumMarshal {
   }
 
   def unmarshalString[A <: EValue[A]](
-    enumName: String,
-    defaultValue: String => A,
-    enumNameMap: Map[String,A],
-    caseSensitive: Boolean,
-    trimInputValue: Boolean): A =
+      enumName: String,
+      defaultValue: String => A,
+      enumNameMap: Map[String,A],
+      caseSensitive: Boolean,
+      trimInputValue: Boolean): A =
   {
     if (enumName == null)
       defaultValue("null")
