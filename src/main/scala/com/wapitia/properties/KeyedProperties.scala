@@ -1,9 +1,11 @@
-package com.wapitia.properties
+package com.wapitia
+package properties
 
 import java.util.{Properties => JavaProperties}
 import com.wapitia.common.{Enum,EValue}
 
-/** KeyedProperties extends the Java `Properties` object with wildcards access.
+/** KeyedProperties wraps a Java `Properties` object with pattern substitution
+ *  availability.
  *
  *  @example
  *
@@ -21,12 +23,12 @@ import com.wapitia.common.{Enum,EValue}
  *  Scala usage:
  *  {{{
  *
- *  def getLicencePolicy(val keyProps: KeyProperties, whichState: Option[String]): String = {
+ *  def getLicencePolicy(val keyProps: KeyedProperties, whichState: Option[String]): String = {
  *      val subMap = { "state" -> whichState }
  *      keyProps.getKeyedProperty(subMap, "dmv.${state}.licence.policy")
  *  }
  *
- *  def testLP(val keyProps: KeyProperties) {
+ *  def testLP(val keyProps: KeyedProperties) {
  *
  *    getLicencePolicy(keyProps, Some["CO"]) // returns "30-day w/birthday"
  *    getLicencePolicy(keyProps, Some["WY"]) // returns "30-day"
