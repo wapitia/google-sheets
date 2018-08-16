@@ -7,4 +7,11 @@ package object io {
    */
   val EndOfInput = -1
 
+  /**
+   * Wrapper of an `InputStream`
+   */
+  trait InputStreamSupplier {
+    def inputStream: java.io.InputStream
+  }
+
 }
