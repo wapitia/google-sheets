@@ -1,7 +1,7 @@
 package com.wapitia
 package io
 
-import java.io.{InputStream, Reader, PipedInputStream}
+import java.io.{InputStream, Reader}
 
 /** Creates a `java.io.InputStream` instance wrapping a user
  *  supplied `java.io.Reader`
@@ -22,7 +22,7 @@ object ReaderInputStream {
    *  @param reader the reader whose characters will be transferred to the sink,
    *                until the reader is exhausted. Closed when finished.
    */
-  def apply(reader: Reader): PipedInputStream = apply(reader, defaultCharsetName)
+  def apply(reader: Reader): InputStream = apply(reader, defaultCharsetName)
 
   /** Read all of the characters from the Reader, creating and providing those
    *  characters as a new `InputStream` instance, mapped according to the user
@@ -33,41 +33,49 @@ object ReaderInputStream {
    *  @param encoding the character set encoding to use to write the characters
    *                  to the sink.  Must not be null. Must be a recognized set.
    */
-  def apply(reader: Reader, encoding: String): PipedInputStream = {
-    val in = new PipedInputStream()
-    val pipeEngine = new PipeReaderToStreamRunnable(in, reader, encoding, CharBufSize)
+  def apply(reader: Reader, encoding: String): InputStream =
+    apply(reader, encoding, CharBufSize)
+
+  def apply(reader: Reader, encoding: String, bufSize: Int): InputStream = {
+    val pipeEngine = new RunnableReaderToStream(reader, encoding, bufSize)
     new Thread(pipeEngine).start()
-    in
+    pipeEngine.inputStream
   }
 }
 
-/** Engine takes some `Reader` of characters and pipes that to the
- *  supplied `PipedInputStream` until the source Reader is exhausted.
+trait InputStreamSupplier {
+  def inputStream: InputStream
+}
+
+/** Engine takes some `Reader` of characters and pipes that to a new
+ *  `InputStream` until the source Reader is exhausted.
  *  The reader is closed upon completion.
  *  The sink is flushed but not closed upon completion.
  *
- *  Designed as a `Runnable` to be run in a separate thread.
+ *  Designed as a `Runnable` to be run in a separate thread in accordance
+ *  with the `java.io.PipedOutputStream` / `java.io.PipedInputStream` pattern.
  *
  *  Reader -> Array[Char] -> OutputStreamWriter -> PipedOutputStream |-> sink
  *
- *  @param sink supplied PipedInputStream will be sourced by
- *              a PipedOutputStream from the contents of the given reader.
  *  @param reader the reader whose characters will be transferred to the sink,
- *                until the reader is exhausted. Closed when finished.
+ *              until the reader is exhausted. Closed when finished.
  *  @param encoding the character set encoding to use to write the characters
- *                  to the sink.  Must not be null.
- *  @param charBufSize size of the character transfer buffer, in number of
- *                characters. Should be a large-ish power of two, but doesn't
- *                need to be larger than the number of incoming characters.
+ *              to the sink.  Must not be null.
+ *  @param bufSize size of the character transfer buffer, in number of
+ *              characters. Should be a large-ish power of two, but doesn't
+ *              need to be larger than the number of incoming characters.
  */
-class PipeReaderToStreamRunnable(sink: PipedInputStream, reader: Reader,
-  encoding: String, charBufSize: Int)
-extends java.lang.Runnable {
+class RunnableReaderToStream(reader: Reader, encoding: String, bufSize: Int)
+extends java.lang.Runnable with InputStreamSupplier {
+
+  private val sink = new java.io.PipedInputStream(bufSize)
+  private val out = new java.io.PipedOutputStream(sink)
+  private val writer = new java.io.OutputStreamWriter(out, encoding)
+  private val buf = new Array[Char](bufSize)
+
+  override def inputStream: InputStream = sink
 
   override def run() {
-    val out = new java.io.PipedOutputStream(sink)
-    val writer = new java.io.OutputStreamWriter(out, encoding)
-    val buf = new Array[Char](charBufSize)
 
     try {
       Stream.continually(reader.read(buf))
