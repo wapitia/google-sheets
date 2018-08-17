@@ -203,6 +203,8 @@ object KeyedProperties {
 
   class PatternParser(params: Params, props: JavaProperties) {
 
+    val wcHead: List[Char] = List('$', '{')
+
     def parse(s: String): String = s.length match {
       case 0 => ""
       case _ => (s.head, s.tail) match {

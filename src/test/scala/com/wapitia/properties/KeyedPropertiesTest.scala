@@ -64,17 +64,13 @@ class KeyedPropertiesTest {
 
     val parser: PatternParser = new PatternParser(kp, jprops)
 
-    val res2: String = parser.parse("state${county}foo")
-    println(res2)
-
-    val res: String = parser.parse("state")
-    println(res)
-
-    val res3: String = parser.parse("state.of.${state}")
-    println(res3)
-
-    val res4: String = parser.parse("state.with.${county}")
-    println(res4)
+    val testMap = Map(
+      "stateNyefoo" -> parser.parse("state${county}foo"),
+      "state" -> parser.parse("state"),
+      "state.of.Nevada" -> parser.parse("state.of.${state}"),
+      "state.with.Nye" -> parser.parse("state.with.${county}")
+    )
+    testMap.foreach { case (exp, act) => assertEquals(exp, act) }
 
   }
 

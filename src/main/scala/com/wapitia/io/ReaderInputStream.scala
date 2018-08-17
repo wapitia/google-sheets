@@ -35,10 +35,10 @@ object ReaderInputStream {
    *                Must be a recognized set.
    */
   def apply(reader: Reader, encoding: String): InputStream =
-    apply(reader, encoding, CharBufSize)
+    apply(reader, encoding, CharBufSize, true)
 
-  def apply(reader: Reader, encoding: String, bufSize: Int): InputStream = {
-    val pipeEngine = new RunnableReaderToStream(reader, encoding, bufSize)
+  def apply(reader: Reader, encoding: String, bufSize: Int, closeReaderWhenFinished: Boolean): InputStream = {
+    val pipeEngine = new RunnableReaderToStream(reader, encoding, bufSize, closeReaderWhenFinished)
     new Thread(pipeEngine).start()
     pipeEngine.inputStream
   }
@@ -62,29 +62,32 @@ object ReaderInputStream {
  *              characters. Should be a large-ish power of two, but doesn't
  *              need to be larger than the number of incoming characters.
  */
-class RunnableReaderToStream(reader: Reader, encoding: String, bufSize: Int)
+class RunnableReaderToStream(reader: Reader, encoding: String, bufSize: Int, closeReader: Boolean)
 extends java.lang.Runnable with InputStreamSupplier {
-  private val sink = new java.io.PipedInputStream(bufSize)
+
+  val pipein = new java.io.PipedInputStream(bufSize)
+  // other end of Piped stream must be established in constructor before
+  // run thread is invoked, otherwise an unconnected exception will be thrown
+  val pipeout = new java.io.PipedOutputStream(pipein)
 
   /** The generated inputStream is a PipedInputStream which will block reads
    *  while the reader's input is not finished but also not available.
    */
-  override def inputStream: InputStream = sink
+  override def inputStream: InputStream = pipein
 
   /** Transfer of characters begins and ends with this run method. */
   override def run() {
 
-    val out = new java.io.PipedOutputStream(sink)
-    val writer = new java.io.OutputStreamWriter(out, encoding)
+    val writer = new java.io.OutputStreamWriter(pipeout, encoding)
     val buf = new Array[Char](bufSize)
     try {
       Stream.continually(reader.read(buf))
       .takeWhile(_ != EndOfInput)
       .foreach { n =>
-        sink.synchronized { writer.write(buf, 0, n) }
+        pipein.synchronized { writer.write(buf, 0, n) }
       }
-      sink.synchronized { writer.flush() }
-      reader.close()
+      pipein.synchronized { writer.flush() }
+      if (closeReader) reader.close()
     } finally {
       // close the output pipes, ignoring IOException
       try {
@@ -93,7 +96,8 @@ extends java.lang.Runnable with InputStreamSupplier {
         case ioe: java.io.IOException => ()
       }
       try {
-        out.close()
+        // writer should have closed pipeout too, but who knows
+        pipeout.close()
       } catch {
         case ioe: java.io.IOException => ()
       }
