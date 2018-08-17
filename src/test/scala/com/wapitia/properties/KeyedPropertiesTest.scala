@@ -15,7 +15,7 @@ object KeyedPropertiesTest
 class KeyedPropertiesTest {
 
   @Test
-  def testLoad1() {
+  def tryLoad() {
     val accessClass: Class[_ <: KeyedPropertiesTest.type] = KeyedPropertiesTest.getClass
 
     val in: InputStream = accessClass.getResourceAsStream("testKeyedProps.properties")
@@ -27,7 +27,6 @@ class KeyedPropertiesTest {
     val fos: FileOutputStream = new FileOutputStream(fo)
     props.storeToXML(fos, "my comment\nMore comments")
     println(props)
-//    assertEquals(props, "myprops")
   }
 
   def getLicencePolicy(keyProps: KeyedProperties, whichState: Option[String]): Option[String] = {
@@ -50,6 +49,33 @@ class KeyedPropertiesTest {
       "working-on-it, perhaps" -> getLicencePolicy(keyProps, Some("KY"))
     )
     testMap.foreach { case (exp, act) =>  assertEquals(exp, act) }
+  }
+
+  @Test
+  def testPatternParser() {
+
+    import KeyedProperties._
+
+    val jprops: java.util.Properties = new java.util.Properties()
+    jprops.setProperty("county", "Nye")
+    jprops.setProperty("state.with.Nye", "Nye County of Nevada")
+
+    val kp: Params = Map("state" -> Option("Nevada"))
+
+    val parser: PatternParser = new PatternParser(kp, jprops)
+
+    val res2: String = parser.parse("state${county}foo")
+    println(res2)
+
+    val res: String = parser.parse("state")
+    println(res)
+
+    val res3: String = parser.parse("state.of.${state}")
+    println(res3)
+
+    val res4: String = parser.parse("state.with.${county}")
+    println(res4)
+
   }
 
 }

@@ -7,6 +7,34 @@ import com.wapitia.common.{Enum,EValue}
 /** KeyedProperties wraps a Java `Properties` object with pattern substitution
  *  availability.
  *
+ *  The property keys may be normal keys in which the value is obtained in a regular way, or the key
+ *  may contain group patterns of the form: `pre.[kopt1|kopt2|koptn].post = ...` which matches
+ *  both `pre.kopt1.post`, `pre.kopt2.post` and `pre.koptn.post`.
+ *
+ *  The property values may be normal values in which the value is returned as usual, or the value
+ *  may contain substitution patterns of the form: `Unchanged text ${some.other.key} more unchanged`
+ *  which will substitute the value from this property's some.other.key value for that text.
+ *
+ *  @example
+ *  Properties file contains:
+ *  `
+ *  ...
+ *  key1 = John
+ *  key2 = Hello ${key1}!
+ *  ...
+ *  `
+ *
+ *  Code contains:
+ *  {{{
+ *    val keyProps: KeyedProperties = KeyProperties.load(...)
+ *    ...
+ *    keyProps.getKeyedProperty("dmv.${state}.licence.policy")
+ *    ...
+ *  }}}
+ *
+ *
+ *
+ *
  *  @example
  *
  *  `
@@ -23,18 +51,21 @@ import com.wapitia.common.{Enum,EValue}
  *  Scala usage:
  *  {{{
  *  def getLicencePolicy(keyProps: KeyedProperties, whichState: Option[String]): Option[String] = {
- *      val subMap: Map[String,Option[String]] = Map( "state" -> whichState )
- *      keyProps.getKeyedProperty(subMap, "dmv.${state}.licence.policy")
+ *      val params: KeyedProperties.Params = Map( "state" -> whichState )
+ *      keyProps.getKeyedProperty(params, "dmv.${state}.licence.policy")
  *  }
  *
- *  def testLP(keyProps: KeyedProperties) {
- *
- *    getLicencePolicy(keyProps, Some("CO")) // returns "30-day w/birthday"
- *    getLicencePolicy(keyProps, Some("WY")) // returns "30-day"
- *    getLicencePolicy(keyProps, Some("NE")) // returns "No grace period AT_ANY_TIME_FOR_NE!"
- *    getLicencePolicy(keyProps, None)       // returns "No grace period AT_ANY_TIME_FOR_UNKNOWN!"
- *    getLicencePolicy(keyProps, Some("NY")) // returns "working-on-it in NY"
- *    getLicencePolicy(keyProps, Some("KY")) // returns "working-on-it, perhaps"
+ *  def testLP(in: java.io.InputStream) {
+ *      val keyProps: KeyedProperties = KeyedProperties.load(in)
+ *      val testMap = Map(
+ *        "30-day w/birthday"                        -> getLicencePolicy(keyProps, Some("CO")),
+ *        "30-day"                                   -> getLicencePolicy(keyProps, Some("WY")),
+ *        "No grace period AT_ANY_TIME_FOR_NE!"      -> getLicencePolicy(keyProps, Some("NE")),
+ *        "No grace period AT_ANY_TIME_FOR_UNKNOWN!" -> getLicencePolicy(keyProps, None),
+ *        "working-on-it in NY"                      -> getLicencePolicy(keyProps, Some("NY")),
+ *        "working-on-it, perhaps"                   -> getLicencePolicy(keyProps, Some("KY"))
+ *      )
+ *      testMap.foreach { case (exp, act) =>  assertEquals(exp, act) }
  *  }
  *  }}}
  *
@@ -43,7 +74,11 @@ import com.wapitia.common.{Enum,EValue}
  */
 class KeyedProperties(props: JavaProperties, keySubstitution: KeySubstitutionFlavor) {
 
-  // public access to underlying java Properties so that they might be stored externally, etc.
+  import KeyedProperties._
+
+//  type KeySequence = List[String]
+
+  // public access to wrapped java Properties so that client might store them externally, etc.
   val javaProperties = props
 
   def getProperty(key: String): Option[String] = getProperty(key, None)
@@ -51,19 +86,28 @@ class KeyedProperties(props: JavaProperties, keySubstitution: KeySubstitutionFla
   def getProperty(key: String, defaultValue: String): Option[String] = getProperty(key, Some(defaultValue))
 
   def getProperty(key: String, optDefault: Option[String]): Option[String] = optDefault match {
-    case Some(defaults) => Option(javaProperties.getProperty(key, defaults))
-    case None           => Option(javaProperties.getProperty(key))
+    case Some(defaults) => Option(props.getProperty(key, defaults))
+    case None           => Option(props.getProperty(key))
   }
 
-  def getKeyedProperty(keyMaps: Map[String,Option[String]], key: String): Option[String] = getKeyedProperty(keyMaps, key, None)
+  def getKeyedProperty(key: String): Option[String] = getKeyedProperty(NoParams, key, None)
 
-  def getKeyedProperty(keyMaps: Map[String,Option[String]], key: String, defaultValue: String): String =
-    getKeyedProperty(keyMaps, key, Some(defaultValue)).get
+  def getKeyedProperty(params: Params, key: String): Option[String] = getKeyedProperty(params, key, None)
 
-  // TODO
-  def getKeyedProperty(keyMaps: Map[String,Option[String]], key: String, optDefault: Option[String]): Option[String] = {
-    ???
+  def getKeyedProperty(key: String, defaultValue: String): String =
+    getKeyedProperty(NoParams, key, Some(defaultValue)).get
+
+  def getKeyedProperty(params: Params, key: String, defaultValue: String): String =
+    getKeyedProperty(params, key, Some(defaultValue)).get
+
+  def getKeyedProperty(params: Params, key: String, optDefault: Option[String]): Option[String] = {
+    val resolvedKey: String = parse(key, params)
+    val rawValue: Option[String] = getValue(resolvedKey, params, props)
+    val rawOrDefault: Option[String] = rawValue.orElse(optDefault)
+    rawOrDefault.map(parse(_, params))
   }
+
+  def parse(rawVal: String, params: Params): String = new PatternParser(params, props).parse(rawVal)
 
 }
 
@@ -71,6 +115,9 @@ object KeyedProperties {
 
   import KeySubstitutionFlavor._
 
+  type Params = Map[String,Option[String]]
+
+  val NoParams = Map.empty.asInstanceOf[Params]
   val DefaultKeySubsitutionFlavor = NormalizeDots
 
   def apply(props: JavaProperties, keySubstitution: KeySubstitutionFlavor) =
@@ -143,6 +190,45 @@ object KeyedProperties {
       mappedPropsOpt.map(loadIntoJavaProperties(_, jProps))
 
       new KeyedProperties(jProps, keySubstitutionFlavor)
+    }
+
+  }
+
+  def getValue(key: String, params: Params, props: JavaProperties): Option[String] = {
+    if (params.contains(key))
+      params.get(key).get
+    else
+      Option(props.getProperty(key, ""))
+  }
+
+  class PatternParser(params: Params, props: JavaProperties) {
+
+    def parse(s: String): String = s.length match {
+      case 0 => ""
+      case _ => (s.head, s.tail) match {
+        case ('$',t) => curlyRes(t)
+        case (anych,t) => "" + anych + parse(t)
+      }
+    }
+
+    // previous character was the format entry char '$'
+    def curlyRes(s: String): String = s.length match {
+      case 0 => "" + '$'  // doesn't match '${' treat '$' as raw character
+      case _ => (s.head, s.tail) match {
+        case ('{',t) => substRes(t, "")
+        case (anych,t) => "" + '$' // doesn't match '${' treat '$' as raw character
+      }
+    }
+
+    // prev two chars were "${"
+    def substRes(s: String, pataccum: String): String = s.length match {
+      case 0 => "" + '$' + '{' // ran off end so treat '${' seq as raw characters
+      case _ => (s.head, s.tail) match {
+        // end found: pataccum is resolved substitution, so substitute it
+        case ('}',t) => parse(getValue(pataccum, params, props).getOrElse("")) + parse(t)
+        case ('$',t) => substRes(curlyRes(t), pataccum)
+        case (acch,t) => substRes(t, pataccum + acch)
+      }
     }
 
   }
