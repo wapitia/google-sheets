@@ -65,9 +65,6 @@ object ReaderInputStream {
 class RunnableReaderToStream(reader: Reader, encoding: String, bufSize: Int)
 extends java.lang.Runnable with InputStreamSupplier {
   private val sink = new java.io.PipedInputStream(bufSize)
-  private val out = new java.io.PipedOutputStream(sink)
-  private val writer = new java.io.OutputStreamWriter(out, encoding)
-  private val buf = new Array[Char](bufSize)
 
   /** The generated inputStream is a PipedInputStream which will block reads
    *  while the reader's input is not finished but also not available.
@@ -77,6 +74,9 @@ extends java.lang.Runnable with InputStreamSupplier {
   /** Transfer of characters begins and ends with this run method. */
   override def run() {
 
+    val out = new java.io.PipedOutputStream(sink)
+    val writer = new java.io.OutputStreamWriter(out, encoding)
+    val buf = new Array[Char](bufSize)
     try {
       Stream.continually(reader.read(buf))
       .takeWhile(_ != EndOfInput)

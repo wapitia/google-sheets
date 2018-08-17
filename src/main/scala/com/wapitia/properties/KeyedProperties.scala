@@ -22,21 +22,20 @@ import com.wapitia.common.{Enum,EValue}
  *
  *  Scala usage:
  *  {{{
- *
- *  def getLicencePolicy(val keyProps: KeyedProperties, whichState: Option[String]): String = {
- *      val subMap = { "state" -> whichState }
+ *  def getLicencePolicy(keyProps: KeyedProperties, whichState: Option[String]): Option[String] = {
+ *      val subMap: Map[String,Option[String]] = Map( "state" -> whichState )
  *      keyProps.getKeyedProperty(subMap, "dmv.${state}.licence.policy")
  *  }
  *
- *  def testLP(val keyProps: KeyedProperties) {
+ *  def testLP(keyProps: KeyedProperties) {
  *
- *    getLicencePolicy(keyProps, Some["CO"]) // returns "30-day w/birthday"
- *    getLicencePolicy(keyProps, Some["WY"]) // returns "30-day"
- *    getLicencePolicy(keyProps, Some["NE"]) // returns "No grace period AT_ANY_TIME_FOR_NE!"
+ *    getLicencePolicy(keyProps, Some("CO")) // returns "30-day w/birthday"
+ *    getLicencePolicy(keyProps, Some("WY")) // returns "30-day"
+ *    getLicencePolicy(keyProps, Some("NE")) // returns "No grace period AT_ANY_TIME_FOR_NE!"
  *    getLicencePolicy(keyProps, None)       // returns "No grace period AT_ANY_TIME_FOR_UNKNOWN!"
- *    getLicencePolicy(keyProps, Some["NY"]) // returns "working-on-it in NY"
- *    getLicencePolicy(keyProps, Some["KY"]) // returns "working-on-it, perhaps"
- *
+ *    getLicencePolicy(keyProps, Some("NY")) // returns "working-on-it in NY"
+ *    getLicencePolicy(keyProps, Some("KY")) // returns "working-on-it, perhaps"
+ *  }
  *  }}}
  *
  *  TODO: This is the plan anyway
@@ -58,8 +57,8 @@ class KeyedProperties(props: JavaProperties, keySubstitution: KeySubstitutionFla
 
   def getKeyedProperty(keyMaps: Map[String,Option[String]], key: String): Option[String] = getKeyedProperty(keyMaps, key, None)
 
-  def getKeyedProperty(keyMaps: Map[String,Option[String]], key: String, defaultValue: String): Option[String] =
-    getKeyedProperty(keyMaps, key, Some(defaultValue))
+  def getKeyedProperty(keyMaps: Map[String,Option[String]], key: String, defaultValue: String): String =
+    getKeyedProperty(keyMaps, key, Some(defaultValue)).get
 
   // TODO
   def getKeyedProperty(keyMaps: Map[String,Option[String]], key: String, optDefault: Option[String]): Option[String] = {
@@ -74,7 +73,8 @@ object KeyedProperties {
 
   val DefaultKeySubsitutionFlavor = NormalizeDots
 
-  def apply(props: JavaProperties, keySubstitution: KeySubstitutionFlavor) = new  KeyedProperties(props, keySubstitution)
+  def apply(props: JavaProperties, keySubstitution: KeySubstitutionFlavor) =
+    new KeyedProperties(props, keySubstitution)
 
   def load(is: java.io.InputStream): KeyedProperties =
     builder().fromInputStream(is).build()
@@ -94,37 +94,52 @@ object KeyedProperties {
   def load(mappedProps: Map[String,String], keyProps: KeyedProperties): KeyedProperties =
     builder().fromMappedProperties(mappedProps).defaults(keyProps.javaProperties).build()
 
-  def builder() = new Builder(DefaultKeySubsitutionFlavor, None, None, None, None)
+  def builder() = new Builder(DefaultKeySubsitutionFlavor, None, None, None, None, None)
 
   class Builder(
       keySubstitutionFlavor: KeySubstitutionFlavor,
       fromInputStreamOpt: Option[java.io.InputStream],
       fromReaderOpt: Option[java.io.Reader],
       mappedPropsOpt: Option[Map[String,String]],
-      defaultJavPropsOpt: Option[JavaProperties])
+      defaultJavPropsOpt: Option[JavaProperties],
+      inputTypeOpt: Option[InputType])
   {
     def fromInputStream(inputStream: java.io.InputStream): Builder =
-      new Builder(keySubstitutionFlavor, Some(inputStream), fromReaderOpt, mappedPropsOpt, defaultJavPropsOpt)
+      new Builder(keySubstitutionFlavor, Some(inputStream), fromReaderOpt,
+        mappedPropsOpt, defaultJavPropsOpt, inputTypeOpt)
 
     def fromReader(reader: java.io.Reader): Builder =
-      new Builder(keySubstitutionFlavor, fromInputStreamOpt, Some(reader), mappedPropsOpt, defaultJavPropsOpt)
+      new Builder(keySubstitutionFlavor, fromInputStreamOpt, Some(reader),
+        mappedPropsOpt, defaultJavPropsOpt, inputTypeOpt)
 
     def fromMappedProperties(mappedProps: Map[String,String]): Builder =
-      new Builder(keySubstitutionFlavor, fromInputStreamOpt, fromReaderOpt, Some(mappedProps), defaultJavPropsOpt)
+      new Builder(keySubstitutionFlavor, fromInputStreamOpt, fromReaderOpt,
+        Some(mappedProps), defaultJavPropsOpt, inputTypeOpt)
 
     def keyCollapseDoubleDots(): Builder =
-      new Builder(NormalizeDots, fromInputStreamOpt, fromReaderOpt, mappedPropsOpt, defaultJavPropsOpt)
+      new Builder(NormalizeDots, fromInputStreamOpt, fromReaderOpt,
+        mappedPropsOpt, defaultJavPropsOpt, inputTypeOpt)
 
     def defaults(javaProps: JavaProperties): Builder =
-      new Builder(keySubstitutionFlavor, fromInputStreamOpt, fromReaderOpt, mappedPropsOpt, Some(javaProps))
+      new Builder(keySubstitutionFlavor, fromInputStreamOpt, fromReaderOpt,
+        mappedPropsOpt, Some(javaProps), inputTypeOpt)
+
+    def asXml(): Builder =
+      new Builder(keySubstitutionFlavor, fromInputStreamOpt, fromReaderOpt,
+        mappedPropsOpt, defaultJavPropsOpt, Some(InputType.Flat))
+
+    def asFlatfile(): Builder =
+      new Builder(keySubstitutionFlavor, fromInputStreamOpt, fromReaderOpt,
+        mappedPropsOpt, defaultJavPropsOpt, Some(InputType.Xml))
 
     def build(): KeyedProperties = {
       val jProps: JavaProperties = defaultJavPropsOpt match {
         case Some(defaults) => new JavaProperties(defaults)
         case None           => new JavaProperties()
       }
-      fromInputStreamOpt.map(loadIntoJavaProperties(_, jProps))
-      fromReaderOpt.map(loadIntoJavaProperties(_, jProps))
+      val inputType = inputTypeOpt.getOrElse(InputType.Flat)
+      fromInputStreamOpt.map(loadIntoJavaProperties(_, jProps, inputType))
+      fromReaderOpt.map(loadIntoJavaProperties(_, jProps, inputType))
       mappedPropsOpt.map(loadIntoJavaProperties(_, jProps))
 
       new KeyedProperties(jProps, keySubstitutionFlavor)
