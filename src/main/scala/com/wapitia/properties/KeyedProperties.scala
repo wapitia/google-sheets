@@ -107,7 +107,7 @@ class KeyedProperties(props: JavaProperties, keySubstitution: KeySubstitutionFla
     rawOrDefault.map(parse(_, params))
   }
 
-  def parse(rawVal: String, params: Params): String = new PatternParser(params, props).parse(rawVal)
+  def parse(rawVal: String, params: Params): String = new PatternParser(params, props, DefaultBadLookupFunc).parse(rawVal)
 
 }
 
@@ -119,6 +119,15 @@ object KeyedProperties {
 
   val NoParams = Map.empty.asInstanceOf[Params]
   val DefaultKeySubsitutionFlavor = NormalizeDots
+
+  val dollar = '$'
+  val opencurly = '{'
+  val closecurly = '}'
+
+  def DefaultBadLookupFunc(lu: String): String = "" + dollar + opencurly + lu + closecurly
+
+  def apply(props: JavaProperties) =
+    new KeyedProperties(props, DefaultKeySubsitutionFlavor)
 
   def apply(props: JavaProperties, keySubstitution: KeySubstitutionFlavor) =
     new KeyedProperties(props, keySubstitution)
@@ -194,42 +203,56 @@ object KeyedProperties {
 
   }
 
+  /** Get the value given the resolved key, first from params, then from props. `None` when not found */
   def getValue(key: String, params: Params, props: JavaProperties): Option[String] = {
+    // either branch may return `None`
     if (params.contains(key))
+      // params.get(key) returns Some(s: Option[String])
       params.get(key).get
     else
-      Option(props.getProperty(key, ""))
+      Option(props.getProperty(key))
   }
 
-  class PatternParser(params: Params, props: JavaProperties) {
+  class PatternParser(params: Params, props: JavaProperties, badLookupFunc: String => String) {
 
-    val wcHead: List[Char] = List('$', '{')
+    def parse(s: String): String = praw(s)
 
-    def parse(s: String): String = s.length match {
+    def praw(s: String): String = s.length match {
       case 0 => ""
       case _ => (s.head, s.tail) match {
-        case ('$',t) => curlyRes(t)
-        case (anych,t) => "" + anych + parse(t)
+        case (ch,t) if ch == dollar => pdol(t)
+        case (ch,t) => "" + ch + praw(t)
       }
     }
 
     // previous character was the format entry char '$'
-    def curlyRes(s: String): String = s.length match {
-      case 0 => "" + '$'  // doesn't match '${' treat '$' as raw character
+    def pdol(s: String): String = s.length match {
+      case 0 => "" + dollar  // doesn't match '${' treat '$' as raw character
       case _ => (s.head, s.tail) match {
-        case ('{',t) => substRes(t, "")
-        case (anych,t) => "" + '$' // doesn't match '${' treat '$' as raw character
+        case (ch,t) if ch == dollar => "" + dollar + parse(t) // matches escape sequence '$$', so push and back to state 0
+        case (ch,t) if ch == opencurly => pcurly(t, "")
+        case (ch,t) => "" + dollar + ch + praw(t) // doesn't match '${' treat '$' as raw character
       }
     }
 
     // prev two chars were "${"
-    def substRes(s: String, pataccum: String): String = s.length match {
-      case 0 => "" + '$' + '{' // ran off end so treat '${' seq as raw characters
+    def pcurly(s: String, pataccum: String): String = s.length match {
+      case 0 => "" + dollar + opencurly + pataccum // ran off end so treat '${' seq as raw characters
       case _ => (s.head, s.tail) match {
         // end found: pataccum is resolved substitution, so substitute it
-        case ('}',t) => parse(getValue(pataccum, params, props).getOrElse("")) + parse(t)
-        case ('$',t) => substRes(curlyRes(t), pataccum)
-        case (acch,t) => substRes(t, pataccum + acch)
+        case (ch,t) if ch == closecurly => praw(getValue(pataccum, params, props).getOrElse(badLookupFunc(pataccum))) + praw(t)
+        case (ch,t) if ch == opencurly => rawuntilclosecurly(t, pataccum + opencurly)
+        case (ch,t) if ch == dollar => pcurly(pdol(t), pataccum)
+        case (ch,t) => pcurly(t, pataccum + ch)
+      }
+    }
+
+    def rawuntilclosecurly(s: String, pataccum: String): String = s.length match {
+      case 0 => "" + dollar + opencurly + pataccum // ran off end so treat '${' seq as raw characters
+      case _ => (s.head, s.tail) match {
+        // end found: pataccum is resolved substitution, so substitute it
+        case (ch,t) if ch == closecurly => praw(getValue(pataccum, params, props).getOrElse(badLookupFunc(pataccum))) + praw(t)
+        case (ch,t) => rawuntilclosecurly(t, pataccum + ch)
       }
     }
 

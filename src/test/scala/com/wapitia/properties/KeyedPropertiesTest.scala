@@ -59,19 +59,61 @@ class KeyedPropertiesTest {
     val jprops: java.util.Properties = new java.util.Properties()
     jprops.setProperty("county", "Nye")
     jprops.setProperty("state.with.Nye", "Nye County of Nevada")
+    jprops.setProperty("restofty", "ty")
 
     val kp: Params = Map("state" -> Option("Nevada"))
 
-    val parser: PatternParser = new PatternParser(kp, jprops)
+    def LookupFunc(lu: String): String = { "" + lu + "_NOT_FOUND!" }
+
+    val parser: PatternParser = new PatternParser(kp, jprops, LookupFunc)
 
     val testMap = Map(
+      "state${" -> parser.parse("state${"),
+      "state$" -> parser.parse("state$"),
+      "state{" -> parser.parse("state{"),
       "stateNyefoo" -> parser.parse("state${county}foo"),
+      "state${county}foo" -> parser.parse("state$${county}foo"),
       "state" -> parser.parse("state"),
       "state.of.Nevada" -> parser.parse("state.of.${state}"),
-      "state.with.Nye" -> parser.parse("state.with.${county}")
+      "state.of.${state}" -> parser.parse("state.of.$${state}"),
+      "state.with.Nye" -> parser.parse("state.with.${county}"),
+        // malformed patterns returned unparsed
+      "$restofty" -> parser.parse("$restofty"),
+      "{$restofty}" -> parser.parse("{$restofty}"),
+      "coun_NOT_FOUND!" -> parser.parse("${coun}"),
+      "coun{ty}" -> parser.parse("coun{${restofty}}"),
+      "Nye" -> parser.parse("${coun${restofty}}"),
+      "coun_NOT_FOUND!}" -> parser.parse("${coun}}"),
+      "coun{$r_NOT_FOUND!" -> parser.parse("${coun{$r}"),
+    )
+    testMap.foreach { case (exp, act) => assertEquals(exp, act) }
+//    testMap.foreach { case (exp, act) => println("" + exp + " -> " + act) }
+
+  }
+
+  @Test
+  def testGetKeyedProperty1() {
+
+    import KeyedProperties._
+
+    val jprops: java.util.Properties = new java.util.Properties()
+    jprops.setProperty("county", "Nye")
+    jprops.setProperty("state.with.Nye", "Nye County of Nevada")
+    jprops.setProperty("stateNyefoo", "Nye Foo")
+    jprops.setProperty("state.of.Nevada", "Whole of nevada state")
+
+    val keyedProps = KeyedProperties(jprops)
+
+    val kp: Params = Map("state" -> Option("Nevada"))
+
+    val testMap = Map(
+      Some("Nye Foo") -> keyedProps.getKeyedProperty(kp, "state${county}foo"),
+      Some("Nevada") -> keyedProps.getKeyedProperty(kp, "state"),
+      Some("Whole of nevada state") -> keyedProps.getKeyedProperty(kp, "state.of.${state}"),
+      Some("Nye County of Nevada") -> keyedProps.getKeyedProperty(kp, "state.with.${county}"),
+      None -> keyedProps.getKeyedProperty(kp, "bogus")
     )
     testMap.foreach { case (exp, act) => assertEquals(exp, act) }
 
   }
-
 }
