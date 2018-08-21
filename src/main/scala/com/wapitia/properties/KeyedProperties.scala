@@ -2,7 +2,6 @@ package com.wapitia
 package properties
 
 import java.util.{Properties => JavaProperties}
-import com.wapitia.common.{Enum,EValue}
 
 /** KeyedProperties wraps a Java `Properties` object with pattern substitution
  *  availability.
@@ -72,11 +71,9 @@ import com.wapitia.common.{Enum,EValue}
  *  TODO: This is the plan anyway
  *
  */
-class KeyedProperties(props: JavaProperties, keySubstitution: KeySubstitutionFlavor) {
+class KeyedProperties(props: JavaProperties, keySubstitution: KeySubstitutionFlavor, eval: PatternEvaluator) {
 
   import KeyedProperties._
-
-//  type KeySequence = List[String]
 
   // public access to wrapped java Properties so that client might store them externally, etc.
   val javaProperties = props
@@ -92,47 +89,43 @@ class KeyedProperties(props: JavaProperties, keySubstitution: KeySubstitutionFla
 
   def getKeyedProperty(key: String): Option[String] = getKeyedProperty(NoParams, key, None)
 
-  def getKeyedProperty(params: Params, key: String): Option[String] = getKeyedProperty(params, key, None)
+  def getKeyedProperty(params: KeyedPropertiesParams, key: String): Option[String] = getKeyedProperty(params, key, None)
 
   def getKeyedProperty(key: String, defaultValue: String): String =
     getKeyedProperty(NoParams, key, Some(defaultValue)).get
 
-  def getKeyedProperty(params: Params, key: String, defaultValue: String): String =
+  def getKeyedProperty(params: KeyedPropertiesParams, key: String, defaultValue: String): String =
     getKeyedProperty(params, key, Some(defaultValue)).get
 
-  def getKeyedProperty(params: Params, key: String, optDefault: Option[String]): Option[String] = {
+  def getKeyedProperty(params: KeyedPropertiesParams, key: String, optDefault: Option[String]): Option[String] = {
     val resolvedKey: String = parse(key, params)
-    val rawValue: Option[String] = getValue(resolvedKey, params, props)
+    val rawValue: Option[String] = makePatternExpander(params).getValue(resolvedKey)
     val rawOrDefault: Option[String] = rawValue.orElse(optDefault)
     rawOrDefault.map(parse(_, params))
   }
 
-  def parse(rawVal: String, params: Params): String = new PatternParser(params, props, DefaultBadLookupFunc).parse(rawVal)
+  def parse(rawVal: String, params: KeyedPropertiesParams): String =
+    makePatternExpander(params).parse(rawVal)
 
+  def makePatternExpander(params: KeyedPropertiesParams): PatternExpander =
+    PatternExpander.default(params, props, eval)
 }
 
 object KeyedProperties {
 
-  import KeySubstitutionFlavor._
+  val NoParams = Map.empty.asInstanceOf[KeyedPropertiesParams]
+  val DefaultKeySubsitutionFlavor = KeySubstitutionFlavor.NormalizeDots
 
-  type Params = Map[String,Option[String]]
+  def DefaultPatternEvaluator = PatternEvaluator.Default
 
-  val NoParams = Map.empty.asInstanceOf[Params]
-  val DefaultKeySubsitutionFlavor = NormalizeDots
-
-  val dollar = '$'
-  val opencurly = '{'
-  val closecurly = '}'
-
-  def lookupFormat(lu: String): String = "" + dollar + opencurly + lu + closecurly
-
-  def DefaultBadLookupFunc(lu: String): String = lookupFormat(lu + "_NOT_FOUND")
+  def DefaultPatternExpander(params: KeyedPropertiesParams, props: JavaProperties, eval: PatternEvaluator) =
+    PatternExpander.default(params, props, eval)
 
   def apply(props: JavaProperties) =
-    new KeyedProperties(props, DefaultKeySubsitutionFlavor)
+    new KeyedProperties(props, DefaultKeySubsitutionFlavor, DefaultPatternEvaluator)
 
   def apply(props: JavaProperties, keySubstitution: KeySubstitutionFlavor) =
-    new KeyedProperties(props, keySubstitution)
+    new KeyedProperties(props, keySubstitution, DefaultPatternEvaluator)
 
   def load(is: java.io.InputStream): KeyedProperties =
     builder().fromInputStream(is).build()
@@ -152,7 +145,7 @@ object KeyedProperties {
   def load(mappedProps: Map[String,String], keyProps: KeyedProperties): KeyedProperties =
     builder().fromMappedProperties(mappedProps).defaults(keyProps.javaProperties).build()
 
-  def builder() = new Builder(DefaultKeySubsitutionFlavor, None, None, None, None, None)
+  def builder() = new Builder(DefaultKeySubsitutionFlavor, None, None, None, None, None, None)
 
   class Builder(
       keySubstitutionFlavor: KeySubstitutionFlavor,
@@ -160,35 +153,40 @@ object KeyedProperties {
       fromReaderOpt: Option[java.io.Reader],
       mappedPropsOpt: Option[Map[String,String]],
       defaultJavPropsOpt: Option[JavaProperties],
-      inputTypeOpt: Option[InputType])
+      inputTypeOpt: Option[InputType],
+      patternEvaluatorOpt: Option[PatternEvaluator])
   {
     def fromInputStream(inputStream: java.io.InputStream): Builder =
       new Builder(keySubstitutionFlavor, Some(inputStream), fromReaderOpt,
-        mappedPropsOpt, defaultJavPropsOpt, inputTypeOpt)
+        mappedPropsOpt, defaultJavPropsOpt, inputTypeOpt, patternEvaluatorOpt)
 
     def fromReader(reader: java.io.Reader): Builder =
       new Builder(keySubstitutionFlavor, fromInputStreamOpt, Some(reader),
-        mappedPropsOpt, defaultJavPropsOpt, inputTypeOpt)
+        mappedPropsOpt, defaultJavPropsOpt, inputTypeOpt, patternEvaluatorOpt)
 
     def fromMappedProperties(mappedProps: Map[String,String]): Builder =
       new Builder(keySubstitutionFlavor, fromInputStreamOpt, fromReaderOpt,
-        Some(mappedProps), defaultJavPropsOpt, inputTypeOpt)
+        Some(mappedProps), defaultJavPropsOpt, inputTypeOpt, patternEvaluatorOpt)
 
     def keyCollapseDoubleDots(): Builder =
-      new Builder(NormalizeDots, fromInputStreamOpt, fromReaderOpt,
-        mappedPropsOpt, defaultJavPropsOpt, inputTypeOpt)
+      new Builder(KeySubstitutionFlavor.NormalizeDots, fromInputStreamOpt, fromReaderOpt,
+        mappedPropsOpt, defaultJavPropsOpt, inputTypeOpt, patternEvaluatorOpt)
 
     def defaults(javaProps: JavaProperties): Builder =
       new Builder(keySubstitutionFlavor, fromInputStreamOpt, fromReaderOpt,
-        mappedPropsOpt, Some(javaProps), inputTypeOpt)
+        mappedPropsOpt, Some(javaProps), inputTypeOpt, patternEvaluatorOpt)
 
     def asXml(): Builder =
       new Builder(keySubstitutionFlavor, fromInputStreamOpt, fromReaderOpt,
-        mappedPropsOpt, defaultJavPropsOpt, Some(InputType.Flat))
+        mappedPropsOpt, defaultJavPropsOpt, Some(InputType.Flat), patternEvaluatorOpt)
 
     def asFlatfile(): Builder =
       new Builder(keySubstitutionFlavor, fromInputStreamOpt, fromReaderOpt,
-        mappedPropsOpt, defaultJavPropsOpt, Some(InputType.Xml))
+        mappedPropsOpt, defaultJavPropsOpt, Some(InputType.Xml), patternEvaluatorOpt)
+
+    def patternEvalulator(patternEvaluator: PatternEvaluator) : Builder =
+      new Builder(keySubstitutionFlavor, fromInputStreamOpt, fromReaderOpt,
+        mappedPropsOpt, defaultJavPropsOpt, inputTypeOpt, Some(patternEvaluator))
 
     def build(): KeyedProperties = {
       val jProps: JavaProperties = defaultJavPropsOpt match {
@@ -199,67 +197,9 @@ object KeyedProperties {
       fromInputStreamOpt.map(loadIntoJavaProperties(_, jProps, inputType))
       fromReaderOpt.map(loadIntoJavaProperties(_, jProps, inputType))
       mappedPropsOpt.map(loadIntoJavaProperties(_, jProps))
+      val patternEvaluator: PatternEvaluator = patternEvaluatorOpt.getOrElse(DefaultPatternEvaluator)
 
-      new KeyedProperties(jProps, keySubstitutionFlavor)
-    }
-
-  }
-
-  /** Get the value given the resolved key, first from params, then from props. `None` when not found */
-  def getValue(key: String, params: Params, props: JavaProperties): Option[String] = {
-    // either branch may return `None`
-    if (params.contains(key))
-      // `params.get(key)` isn't `None`, but returns `Some(Option[String])`
-      params.get(key).get
-    else
-      // `getProperty` will return `null` if not found; `Option` wraps `null` as `None`
-      Option(props.getProperty(key))
-  }
-
-  class PatternParser(params: Params, props: JavaProperties, badLookupFunc: String => String) {
-
-    def parse(s: String): String = praw(s)
-
-    def resolve(str: String): String =
-      getValue(str, params, props).getOrElse(badLookupFunc(str))
-
-    private def praw(s: String): String = s.length match {
-      case 0 => ""
-      case _ => (s.head, s.tail) match {
-        case (ch,t) if ch == dollar => pdol(t)
-        case (ch,t) => "" + ch + praw(t)
-      }
-    }
-
-    // previous char was the format entry char '$'
-    private def pdol(s: String): String = s.length match {
-      case 0 => "" + dollar  // doesn't match '${' treat '$' as raw character
-      case _ => (s.head, s.tail) match {
-        case (ch,t) if ch == dollar => "" + dollar + parse(t) // matches escape sequence '$$', so push and back to state 0
-        case (ch,t) if ch == opencurly => pcurly(t, "")
-        case (ch,t) => "" + dollar + ch + praw(t) // doesn't match '${' treat '$' as raw character
-      }
-    }
-
-    // previous two chars were "${"
-    private def pcurly(s: String, pataccum: String): String = s.length match {
-      case 0 => "" + dollar + opencurly + pataccum // ran off end so treat '${' as raw characters
-      case _ => (s.head, s.tail) match {
-        // end found: pataccum is resolved substitution, so substitute it
-        case (ch,t) if ch == dollar => pcurly(pdol(t), pataccum)
-        case (ch,t) if ch == opencurly => rawuntilclosecurly(t, pataccum + opencurly)
-        case (ch,t) if ch == closecurly => praw(resolve(pataccum)) + praw(t)
-        case (ch,t) => pcurly(t, pataccum + ch)
-      }
-    }
-
-    private def rawuntilclosecurly(s: String, pataccum: String): String = s.length match {
-      case 0 => "" + dollar + opencurly + pataccum // ran off end so treat '${' seq as raw characters
-      case _ => (s.head, s.tail) match {
-        // end found: pataccum is resolved substitution, so substitute it
-        case (ch,t) if ch == closecurly => praw(resolve(pataccum)) + praw(t)
-        case (ch,t) => rawuntilclosecurly(t, pataccum + ch)
-      }
+      new KeyedProperties(jProps, keySubstitutionFlavor, patternEvaluator)
     }
 
   }

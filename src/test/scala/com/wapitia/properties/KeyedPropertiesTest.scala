@@ -48,7 +48,7 @@ class KeyedPropertiesTest {
       "working-on-it in NY" -> getLicencePolicy(keyProps, Some("NY")),
       "working-on-it, perhaps" -> getLicencePolicy(keyProps, Some("KY"))
     )
-    testMap.foreach { case (exp, act) =>  assertEquals(exp, act) }
+    testMap.foreach { case (exp, act) => assertEquals(exp, act) }
   }
 
   @Test
@@ -61,11 +61,10 @@ class KeyedPropertiesTest {
     jprops.setProperty("state.with.Nye", "Nye County of Nevada")
     jprops.setProperty("restofty", "ty")
 
-    val kp: Params = Map("state" -> Option("Nevada"))
+    val kp: KeyedPropertiesParams = Map("state" -> Option("Nevada"))
 
-    def LookupFunc(lu: String): String = { "" + lu + "_NOT_FOUND!" }
-
-    val parser: PatternParser = new PatternParser(kp, jprops, LookupFunc)
+//    val parser: PatternExpander = new PatternExpander(kp, jprops, LookupFunc, new PatternEvaluator(DefaultBadLookupFunc))
+    val parser: PatternExpander = PatternExpander.default(kp, jprops, PatternEvaluator.Default)
 
     val testMap = Map(
       "state${" -> parser.parse("state${"),
@@ -80,11 +79,11 @@ class KeyedPropertiesTest {
         // malformed patterns returned unparsed
       "$restofty" -> parser.parse("$restofty"),
       "{$restofty}" -> parser.parse("{$restofty}"),
-      "coun_NOT_FOUND!" -> parser.parse("${coun}"),
+      "coun_NOT_FOUND" -> parser.parse("${coun}"),
       "coun{ty}" -> parser.parse("coun{${restofty}}"),
       "Nye" -> parser.parse("${coun${restofty}}"),
-      "coun_NOT_FOUND!}" -> parser.parse("${coun}}"),
-      "coun{$r_NOT_FOUND!" -> parser.parse("${coun{$r}")
+      "coun_NOT_FOUND}" -> parser.parse("${coun}}"),
+      "coun{$r_NOT_FOUND" -> parser.parse("${coun{$r}")
     )
     testMap.foreach { case (exp, act) => assertEquals(exp, act) }
 //    testMap.foreach { case (exp, act) => println("" + exp + " -> " + act) }
@@ -103,7 +102,7 @@ class KeyedPropertiesTest {
 
     val keyedProps = KeyedProperties(jprops)
 
-    val kp: Params = Map("state" -> Option("Nevada"))
+    val kp: KeyedPropertiesParams = Map("state" -> Option("Nevada"))
 
     val testMap = Map(
       Some("Nye Foo") -> keyedProps.getKeyedProperty(kp, "state${county}foo"),

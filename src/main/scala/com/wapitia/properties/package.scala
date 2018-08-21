@@ -7,6 +7,11 @@ import com.wapitia.common.{Enum,EValue}
 /** Extension to Java Properties functionality */
 package object properties {
 
+  /** Properties params are named optional properties, the "Optional"
+   *  functionality allowing an overwrite of property "not found"
+   */
+  type KeyedPropertiesParams = Map[String,Option[String]]
+
   sealed trait InputType extends InputType.Value with EValue[InputType]
 
   object InputType extends Enum[InputType] {
