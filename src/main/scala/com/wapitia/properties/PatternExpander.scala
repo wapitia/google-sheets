@@ -8,6 +8,14 @@ trait PatternExpander {
   def getValue(key: String): Option[String]
 
   def parse(s: String): String
+
+  def getKeyedProperty(key: String, optDefault: Option[String]): Option[String] = {
+    val resolvedKey: String = parse(key)
+    val rawValue: Option[String] = getValue(resolvedKey)
+    val rawOrDefault: Option[String] = rawValue.orElse(optDefault)
+    rawOrDefault.map(parse(_))
+  }
+
 }
 
 object PatternExpander {

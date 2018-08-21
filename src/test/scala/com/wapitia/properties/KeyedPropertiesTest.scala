@@ -63,7 +63,6 @@ class KeyedPropertiesTest {
 
     val kp: KeyedPropertiesParams = Map("state" -> Option("Nevada"))
 
-//    val parser: PatternExpander = new PatternExpander(kp, jprops, LookupFunc, new PatternEvaluator(DefaultBadLookupFunc))
     val parser: PatternExpander = PatternExpander.default(kp, jprops, PatternEvaluator.Default)
 
     val testMap = Map(

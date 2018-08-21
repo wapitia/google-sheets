@@ -95,14 +95,8 @@ class KeyedProperties(props: JavaProperties, keySubstitution: KeySubstitutionFla
     getKeyedProperty(params, key, Some(defaultValue)).get
 
   def getKeyedProperty(params: KeyedPropertiesParams, key: String, optDefault: Option[String]): Option[String] = {
-    val resolvedKey: String = parse(key, params)
-    val rawValue: Option[String] = makePatternExpander(params).getValue(resolvedKey)
-    val rawOrDefault: Option[String] = rawValue.orElse(optDefault)
-    rawOrDefault.map(parse(_, params))
+    makePatternExpander(params).getKeyedProperty(key, optDefault)
   }
-
-  def parse(rawVal: String, params: KeyedPropertiesParams): String =
-    makePatternExpander(params).parse(rawVal)
 
   def makePatternExpander(params: KeyedPropertiesParams): PatternExpander =
     DefaultPatternExpander(params, props, eval)
