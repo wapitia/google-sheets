@@ -31,9 +31,6 @@ import java.util.{Properties => JavaProperties}
  *    ...
  *  }}}
  *
- *
- *
- *
  *  @example
  *
  *  `
@@ -108,7 +105,7 @@ class KeyedProperties(props: JavaProperties, keySubstitution: KeySubstitutionFla
     makePatternExpander(params).parse(rawVal)
 
   def makePatternExpander(params: KeyedPropertiesParams): PatternExpander =
-    PatternExpander.default(params, props, eval)
+    DefaultPatternExpander(params, props, eval)
 }
 
 object KeyedProperties {
@@ -118,7 +115,7 @@ object KeyedProperties {
 
   def DefaultPatternEvaluator = PatternEvaluator.Default
 
-  def DefaultPatternExpander(params: KeyedPropertiesParams, props: JavaProperties, eval: PatternEvaluator) =
+  def DefaultPatternExpander(params: KeyedPropertiesParams, props: JavaProperties, eval: PatternEvaluator): PatternExpander =
     PatternExpander.default(params, props, eval)
 
   def apply(props: JavaProperties) =

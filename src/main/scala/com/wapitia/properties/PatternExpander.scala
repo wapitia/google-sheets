@@ -20,6 +20,7 @@ object PatternExpander {
    *  will expand to `${don't change}`.
    *  The pattern is recursive so that this expander attempts to expand the pattern `${key.frag.${embedded-part}}`,
    *  and here care must be made so that infinite recursion doesn't happen.
+   *  Does not expand the pattern `{ whatever }` if not preceded by a dollar sign. This is either a bug or a feature.
    */
   class SimplePatternExpander(params: KeyedPropertiesParams, props: JavaProperties, eval: PatternEvaluator) extends PatternExpander {
 
