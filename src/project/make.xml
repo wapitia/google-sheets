@@ -5,8 +5,6 @@
   <!--+ ==============================================================================================================
       | Public targets.
       +-->
-  
-  
   <target name="zip-source" depends="init" description="zip all main and test source">
     
   	<mkdir dir="${targetdir}" />

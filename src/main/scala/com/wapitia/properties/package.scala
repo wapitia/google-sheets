@@ -2,9 +2,20 @@ package com.wapitia
 
 import java.util.{Properties => JavaProperties}
 import java.io.{InputStream => JInStream, Reader => JReader, IOException => IOE}
+import com.wapitia.common.{Enum,EValue}
 
 /** Extension to Java Properties functionality */
 package object properties {
+
+  sealed trait InputType extends InputType.Value with EValue[InputType]
+
+  object InputType extends Enum[InputType] {
+    case object Flat extends InputType
+    case object Xml extends InputType
+
+    val enumValues = List(Flat, Xml)
+  }
+
   // TODO this is screaming for macros
 
   // == java.io.InputStream interface ==
@@ -15,14 +26,14 @@ package object properties {
   @throws(classOf[IOE])
   def loadJavaProperties(is: JInStream): JavaProperties = {
     val javaProps = new JavaProperties()
-    loadIntoJavaProperties(is, javaProps)
+    loadIntoJavaProperties(is, javaProps, InputType.Flat)
     javaProps
   }
 
   @throws(classOf[IOE])
   def loadJavaPropertiesFromXML(is: JInStream): JavaProperties = {
     val javaProps = new JavaProperties()
-    loadIntoJavaPropertiesFromXML(is, javaProps)
+    loadIntoJavaProperties(is, javaProps, InputType.Xml)
     javaProps
   }
 
@@ -33,14 +44,14 @@ package object properties {
   @throws(classOf[IOE])
   def loadJavaProperties(is: JInStream, defaults: JavaProperties): JavaProperties = {
     val javaProps = new JavaProperties(defaults)
-    loadIntoJavaProperties(is, javaProps)
+    loadIntoJavaProperties(is, javaProps, InputType.Flat)
     javaProps
   }
 
   @throws(classOf[IOE])
   def loadJavaPropertiesFromXML(is: JInStream, defaults: JavaProperties): JavaProperties = {
     val javaProps = new JavaProperties(defaults)
-    loadIntoJavaPropertiesFromXML(is, javaProps)
+    loadIntoJavaProperties(is, javaProps, InputType.Xml)
     javaProps
   }
 
@@ -57,6 +68,14 @@ package object properties {
     javaProps.loadFromXML(is)
   }
 
+  @throws(classOf[IOE])
+  def loadIntoJavaProperties(is: JInStream, javaProps: JavaProperties, inputType: InputType) {
+    inputType match {
+      case InputType.Flat => loadIntoJavaProperties(is, javaProps)
+      case InputType.Xml => loadIntoJavaPropertiesFromXML(is, javaProps)
+    }
+  }
+
   // == java.io.Reader interface ==
 
   /** Load a new `java.util.Properties` instance from a `Reader`.
@@ -65,14 +84,14 @@ package object properties {
   @throws(classOf[IOE])
   def loadJavaProperties(reader: JReader): JavaProperties = {
     val javaProps = new JavaProperties()
-    loadIntoJavaProperties(reader, javaProps)
+    loadIntoJavaProperties(reader, javaProps, InputType.Flat)
     javaProps
   }
 
   @throws(classOf[IOE])
   def loadJavaPropertiesFromXML(reader: JReader): JavaProperties = {
     val javaProps = new JavaProperties()
-    loadIntoJavaPropertiesFromXML(reader, javaProps)
+    loadIntoJavaProperties(reader, javaProps, InputType.Xml)
     javaProps
   }
 
@@ -82,14 +101,14 @@ package object properties {
   @throws(classOf[IOE])
   def loadJavaProperties(reader: JReader, defaults: JavaProperties): JavaProperties = {
     val javaProps = new JavaProperties(defaults)
-    loadIntoJavaProperties(reader, javaProps)
+    loadIntoJavaProperties(reader, javaProps, InputType.Flat)
     javaProps
   }
 
   @throws(classOf[IOE])
   def loadJavaPropertiesFromXML(reader: JReader, defaults: JavaProperties): JavaProperties = {
     val javaProps = new JavaProperties(defaults)
-    loadIntoJavaPropertiesFromXML(reader, javaProps)
+    loadIntoJavaProperties(reader, javaProps, InputType.Xml)
     javaProps
   }
 
@@ -104,6 +123,14 @@ package object properties {
   @throws(classOf[IOE])
   def loadIntoJavaPropertiesFromXML(reader: JReader, javaProps: JavaProperties) {
     javaProps.loadFromXML(com.wapitia.io.ReaderInputStream(reader))
+  }
+
+  @throws(classOf[IOE])
+  def loadIntoJavaProperties(reader: JReader, javaProps: JavaProperties, inputType: InputType) {
+    inputType match {
+      case InputType.Flat => loadIntoJavaProperties(reader, javaProps)
+      case InputType.Xml => loadIntoJavaPropertiesFromXML(reader, javaProps)
+    }
   }
 
   // == Map[String,String] interface ==

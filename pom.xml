@@ -16,6 +16,7 @@
     <google-api-client-version>1.23.0</google-api-client-version>
     <google-oauth-client-jetty-version>1.23.0</google-oauth-client-jetty-version>
     <maven-min-version>3.0</maven-min-version>
+    <junit-version>4.11</junit-version>
 
     <!-- plugin artifact versions -->
     <maven-clean-plugin-version>2.2</maven-clean-plugin-version>
@@ -31,6 +32,7 @@
     <maven-project-info-reports-plugin-version>2.2</maven-project-info-reports-plugin-version>
     <alchim31-maven-scala-plugin-version>3.4.2</alchim31-maven-scala-plugin-version>
     <google-api-services-sheets-version>v4-rev493-1.23.0</google-api-services-sheets-version>
+    
   </properties>
   <dependencies>
     <dependency>
@@ -61,7 +63,7 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.11</version>
+      <version>${junit-version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -199,7 +201,7 @@
           <testSourceDirectories>
             <dir>${project.basedir}/src/test/scala</dir>
           </testSourceDirectories>
-          <configLocation>${project.basedir}/src/make/scalastyle_config.xml</configLocation>
+          <configLocation>${project.basedir}/src/project/scalastyle_config.xml</configLocation>
           <outputFile>${project.basedir}/target/scalastyle/scalastyle-output.xml</outputFile>
           <outputEncoding>UTF-8</outputEncoding>
         </configuration>
