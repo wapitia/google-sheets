@@ -84,11 +84,10 @@ class KeyedPropertiesTest {
       "coun{ty}" -> parser.parse("coun{${restofty}}"),
       "Nye" -> parser.parse("${coun${restofty}}"),
       "coun_NOT_FOUND!}" -> parser.parse("${coun}}"),
-      "coun{$r_NOT_FOUND!" -> parser.parse("${coun{$r}"),
+      "coun{$r_NOT_FOUND!" -> parser.parse("${coun{$r}")
     )
     testMap.foreach { case (exp, act) => assertEquals(exp, act) }
 //    testMap.foreach { case (exp, act) => println("" + exp + " -> " + act) }
-
   }
 
   @Test
@@ -114,6 +113,5 @@ class KeyedPropertiesTest {
       None -> keyedProps.getKeyedProperty(kp, "bogus")
     )
     testMap.foreach { case (exp, act) => assertEquals(exp, act) }
-
   }
 }

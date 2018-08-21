@@ -124,7 +124,9 @@ object KeyedProperties {
   val opencurly = '{'
   val closecurly = '}'
 
-  def DefaultBadLookupFunc(lu: String): String = "" + dollar + opencurly + lu + closecurly
+  def lookupFormat(lu: String): String = "" + dollar + opencurly + lu + closecurly
+
+  def DefaultBadLookupFunc(lu: String): String = lookupFormat(lu + "_NOT_FOUND")
 
   def apply(props: JavaProperties) =
     new KeyedProperties(props, DefaultKeySubsitutionFlavor)
@@ -207,9 +209,10 @@ object KeyedProperties {
   def getValue(key: String, params: Params, props: JavaProperties): Option[String] = {
     // either branch may return `None`
     if (params.contains(key))
-      // params.get(key) returns Some(s: Option[String])
+      // `params.get(key)` isn't `None`, but returns `Some(Option[String])`
       params.get(key).get
     else
+      // `getProperty` will return `null` if not found; `Option` wraps `null` as `None`
       Option(props.getProperty(key))
   }
 
@@ -217,7 +220,10 @@ object KeyedProperties {
 
     def parse(s: String): String = praw(s)
 
-    def praw(s: String): String = s.length match {
+    def resolve(str: String): String =
+      getValue(str, params, props).getOrElse(badLookupFunc(str))
+
+    private def praw(s: String): String = s.length match {
       case 0 => ""
       case _ => (s.head, s.tail) match {
         case (ch,t) if ch == dollar => pdol(t)
@@ -225,8 +231,8 @@ object KeyedProperties {
       }
     }
 
-    // previous character was the format entry char '$'
-    def pdol(s: String): String = s.length match {
+    // previous char was the format entry char '$'
+    private def pdol(s: String): String = s.length match {
       case 0 => "" + dollar  // doesn't match '${' treat '$' as raw character
       case _ => (s.head, s.tail) match {
         case (ch,t) if ch == dollar => "" + dollar + parse(t) // matches escape sequence '$$', so push and back to state 0
@@ -235,23 +241,23 @@ object KeyedProperties {
       }
     }
 
-    // prev two chars were "${"
-    def pcurly(s: String, pataccum: String): String = s.length match {
-      case 0 => "" + dollar + opencurly + pataccum // ran off end so treat '${' seq as raw characters
+    // previous two chars were "${"
+    private def pcurly(s: String, pataccum: String): String = s.length match {
+      case 0 => "" + dollar + opencurly + pataccum // ran off end so treat '${' as raw characters
       case _ => (s.head, s.tail) match {
         // end found: pataccum is resolved substitution, so substitute it
-        case (ch,t) if ch == closecurly => praw(getValue(pataccum, params, props).getOrElse(badLookupFunc(pataccum))) + praw(t)
-        case (ch,t) if ch == opencurly => rawuntilclosecurly(t, pataccum + opencurly)
         case (ch,t) if ch == dollar => pcurly(pdol(t), pataccum)
+        case (ch,t) if ch == opencurly => rawuntilclosecurly(t, pataccum + opencurly)
+        case (ch,t) if ch == closecurly => praw(resolve(pataccum)) + praw(t)
         case (ch,t) => pcurly(t, pataccum + ch)
       }
     }
 
-    def rawuntilclosecurly(s: String, pataccum: String): String = s.length match {
+    private def rawuntilclosecurly(s: String, pataccum: String): String = s.length match {
       case 0 => "" + dollar + opencurly + pataccum // ran off end so treat '${' seq as raw characters
       case _ => (s.head, s.tail) match {
         // end found: pataccum is resolved substitution, so substitute it
-        case (ch,t) if ch == closecurly => praw(getValue(pataccum, params, props).getOrElse(badLookupFunc(pataccum))) + praw(t)
+        case (ch,t) if ch == closecurly => praw(resolve(pataccum)) + praw(t)
         case (ch,t) => rawuntilclosecurly(t, pataccum + ch)
       }
     }
