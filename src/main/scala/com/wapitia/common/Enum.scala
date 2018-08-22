@@ -35,9 +35,10 @@ package common
  *  @tparam A The type of the enum, self-reflective as in
  *            trait `Z extends Z.Value with EValue[Z]`
  */
-@deprecated("Scala 3 introduces Enumeration at which point most of this is moot", "Scala 3")
-trait EValue[A] {
-  self: A=>
+// @deprecated("Scala 3 introduces Enumeration at which point most of this is moot", "Scala 3")
+trait EValue[A] { self: A=>
+
+  import scala.language.implicitConversions
 
   /** the name of the "raw" enum object as a string.
    *  The Evalue's class name, when used correctly, will be of the form
@@ -98,7 +99,7 @@ trait EValue[A] {
  * @tparam A The type of the enum which must also extend `EValue` as in
  *           object `Z` extends `Enum[Z]`
  */
-@deprecated("Scala 3 introduces Enumeration at which point most of this is moot", "Scala 3")
+// @deprecated("Scala 3 introduces Enumeration at which point most of this is moot", "Scala 3")
 trait Enum[A <: EValue[A]] {
   /** Enum values must extend the type parameter */
   trait Value { self: A=> }
