@@ -51,7 +51,7 @@ class SimplePatternExpander(params: KeyedPropertiesParams, props: JavaProperties
   private def pdol(s: String): String = s.length match {
     case 0 => "" + dollar  // doesn't match '${' treat '$' as raw character
     case _ => (s.head, s.tail) match {
-      case (ch,t) if ch == dollar => "" + dollar + parse(t) // matches escape sequence '$$', so push and back to state 0
+      case (ch,t) if ch == dollar => "" + dollar + praw(t) // matches escape sequence '$$', so push and back to state 0
       case (ch,t) if ch == opencurly => pcurly(t, "")
       case (ch,t) => "" + dollar + ch + praw(t) // doesn't match '${' treat '$' as raw character
     }
