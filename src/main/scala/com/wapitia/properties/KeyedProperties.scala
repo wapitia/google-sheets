@@ -68,11 +68,9 @@ import java.util.{Properties => JavaProperties}
  *  TODO: This is the plan anyway
  *
  */
-class KeyedProperties(props: JavaProperties, keySubstitution: KeySubstitutionFlavor, eval: PatternEvaluator) {
+class KeyedProperties(props: JavaProperties, makePatternExpander: KeyedProperties.PatternExpanderMaker) {
 
-  import KeyedProperties._
-
-  // public access to wrapped java Properties so that client might store them externally, etc.
+  /** public access to wrapped java Properties so that client might store them externally, etc. */
   val javaProperties = props
 
   def getProperty(key: String): Option[String] = getProperty(key, None)
@@ -84,102 +82,122 @@ class KeyedProperties(props: JavaProperties, keySubstitution: KeySubstitutionFla
     case None           => Option(props.getProperty(key))
   }
 
-  def getKeyedProperty(key: String): Option[String] = getKeyedProperty(NoParams, key, None)
-
-  def getKeyedProperty(params: KeyedPropertiesParams, key: String): Option[String] = getKeyedProperty(params, key, None)
+  def getKeyedProperty(key: String): Option[String] =
+    getKeyedProperty(KeyedProperties.NoParams, key, None)
 
   def getKeyedProperty(key: String, defaultValue: String): String =
-    getKeyedProperty(NoParams, key, Some(defaultValue)).get
+    getKeyedProperty(KeyedProperties.NoParams, key, Some(defaultValue)).get
+
+  def getKeyedProperty(params: KeyedPropertiesParams, key: String): Option[String] =
+    getKeyedProperty(params, key, None)
 
   def getKeyedProperty(params: KeyedPropertiesParams, key: String, defaultValue: String): String =
     getKeyedProperty(params, key, Some(defaultValue)).get
 
-  def getKeyedProperty(params: KeyedPropertiesParams, key: String, optDefault: Option[String]): Option[String] = {
-    makePatternExpander(params).getKeyedProperty(key, optDefault)
-  }
-
-  def makePatternExpander(params: KeyedPropertiesParams): PatternExpander =
-    DefaultPatternExpander(params, props, eval)
+  def getKeyedProperty(params: KeyedPropertiesParams, key: String, optDefault: Option[String]): Option[String] =
+    makePatternExpander(params, props).getKeyedProperty(key, optDefault)
 }
 
 object KeyedProperties {
 
+  /** Producer of a `PatternExpander` when given `KeyedPropertiesParams`, and `JavaProperties`.
+   *  The produced `PatternExpander` is configured with an implicit `PatternEvaluator`.
+   */
+  type PatternExpanderMaker = (KeyedPropertiesParams, JavaProperties) => PatternExpander
+
   val NoParams = Map.empty.asInstanceOf[KeyedPropertiesParams]
-  val DefaultKeySubsitutionFlavor = KeySubstitutionFlavor.NormalizeDots
 
   def DefaultPatternEvaluator = PatternEvaluator.Default
 
-  def DefaultPatternExpander(params: KeyedPropertiesParams, props: JavaProperties, eval: PatternEvaluator): PatternExpander =
-    PatternExpander.default(params, props, eval)
+  val DefaultPatternExpanderMaker: PatternExpanderMaker =
+    (params: KeyedPropertiesParams, props: JavaProperties) => PatternExpander.default(params, props, DefaultPatternEvaluator)
 
   def apply(props: JavaProperties) =
-    new KeyedProperties(props, DefaultKeySubsitutionFlavor, DefaultPatternEvaluator)
-
-  def apply(props: JavaProperties, keySubstitution: KeySubstitutionFlavor) =
-    new KeyedProperties(props, keySubstitution, DefaultPatternEvaluator)
+    new KeyedProperties(props, DefaultPatternExpanderMaker)
 
   def load(is: java.io.InputStream): KeyedProperties =
-    builder().fromInputStream(is).build()
+    loader().fromInputStream(is).build()
 
   def load(reader: java.io.Reader): KeyedProperties =
-    builder().fromReader(reader).build()
+    loader().fromReader(reader).build()
 
   def load(mappedProps: Map[String,String]): KeyedProperties =
-    builder().fromMappedProperties(mappedProps).build()
+    loader().fromMappedProperties(mappedProps).build()
 
   def load(is: java.io.InputStream, keyProps: KeyedProperties): KeyedProperties =
-    builder().fromInputStream(is).defaults(keyProps.javaProperties).build()
+    loader().fromInputStream(is).parentJavaProperties(keyProps.javaProperties).build()
 
   def load(reader: java.io.Reader, keyProps: KeyedProperties): KeyedProperties =
-    builder().fromReader(reader).defaults(keyProps.javaProperties).build()
+    loader().fromReader(reader).parentJavaProperties(keyProps.javaProperties).build()
 
   def load(mappedProps: Map[String,String], keyProps: KeyedProperties): KeyedProperties =
-    builder().fromMappedProperties(mappedProps).defaults(keyProps.javaProperties).build()
+    loader().fromMappedProperties(mappedProps).parentJavaProperties(keyProps.javaProperties).build()
 
-  def builder() = new Builder(DefaultKeySubsitutionFlavor, None, None, None, None, None, None)
+  def loader() = new LoaderBuilder(None, None, None, None, None, None, None)
 
-  class Builder(
-      keySubstitutionFlavor: KeySubstitutionFlavor,
+  class LoaderBuilder(
       fromInputStreamOpt: Option[java.io.InputStream],
       fromReaderOpt: Option[java.io.Reader],
       mappedPropsOpt: Option[Map[String,String]],
       defaultJavPropsOpt: Option[JavaProperties],
       inputTypeOpt: Option[InputType],
-      patternEvaluatorOpt: Option[PatternEvaluator])
+      patternEvaluatorOpt: Option[PatternEvaluator],
+      patternExpanderOpt: Option[PatternExpanderMaker])
   {
-    def fromInputStream(inputStream: java.io.InputStream): Builder =
-      new Builder(keySubstitutionFlavor, Some(inputStream), fromReaderOpt,
-        mappedPropsOpt, defaultJavPropsOpt, inputTypeOpt, patternEvaluatorOpt)
+    /** Provide the input stream from which to load Java Properties.
+     *  This should be called only once, as any previous input stream will be superceded by this new one.
+     */
+    def fromInputStream(inputStream: java.io.InputStream): LoaderBuilder =
+      new LoaderBuilder(Some(inputStream), fromReaderOpt, mappedPropsOpt, defaultJavPropsOpt, inputTypeOpt,
+        patternEvaluatorOpt, patternExpanderOpt)
 
-    def fromReader(reader: java.io.Reader): Builder =
-      new Builder(keySubstitutionFlavor, fromInputStreamOpt, Some(reader),
-        mappedPropsOpt, defaultJavPropsOpt, inputTypeOpt, patternEvaluatorOpt)
+    /** Provide the Reader from which to load Java Properties.
+     *  This should be called only once, as any previous reader will be superceded by this new one.
+     */
+    def fromReader(reader: java.io.Reader): LoaderBuilder =
+      new LoaderBuilder(fromInputStreamOpt, Some(reader), mappedPropsOpt, defaultJavPropsOpt, inputTypeOpt,
+        patternEvaluatorOpt, patternExpanderOpt)
 
-    def fromMappedProperties(mappedProps: Map[String,String]): Builder =
-      new Builder(keySubstitutionFlavor, fromInputStreamOpt, fromReaderOpt,
-        Some(mappedProps), defaultJavPropsOpt, inputTypeOpt, patternEvaluatorOpt)
+    /** Provide a map of property keys to values to be loaded into a new Java Properties instance. */
+    def fromMappedProperties(mappedProps: Map[String,String]): LoaderBuilder =
+      new LoaderBuilder(fromInputStreamOpt, fromReaderOpt, Some(mappedProps), defaultJavPropsOpt, inputTypeOpt,
+        patternEvaluatorOpt, patternExpanderOpt)
 
-    def keyCollapseDoubleDots(): Builder =
-      new Builder(KeySubstitutionFlavor.NormalizeDots, fromInputStreamOpt, fromReaderOpt,
-        mappedPropsOpt, defaultJavPropsOpt, inputTypeOpt, patternEvaluatorOpt)
+    /** Provide the default Java Properties instance which will be wrapped by a newly created JavaProperties */
+    def parentJavaProperties(javaProps: JavaProperties): LoaderBuilder =
+      new LoaderBuilder(fromInputStreamOpt, fromReaderOpt, mappedPropsOpt, Some(javaProps), inputTypeOpt,
+        patternEvaluatorOpt, patternExpanderOpt)
 
-    def defaults(javaProps: JavaProperties): Builder =
-      new Builder(keySubstitutionFlavor, fromInputStreamOpt, fromReaderOpt,
-        mappedPropsOpt, Some(javaProps), inputTypeOpt, patternEvaluatorOpt)
+    /** Load from Input Stream or reader as a flat file (`InputType.Flat`), as opposed to an XML file. */
+    def asFlatfile(): LoaderBuilder =
+      new LoaderBuilder(fromInputStreamOpt, fromReaderOpt, mappedPropsOpt, defaultJavPropsOpt, Some(InputType.Flat),
+        patternEvaluatorOpt, patternExpanderOpt)
 
-    def asXml(): Builder =
-      new Builder(keySubstitutionFlavor, fromInputStreamOpt, fromReaderOpt,
-        mappedPropsOpt, defaultJavPropsOpt, Some(InputType.Flat), patternEvaluatorOpt)
+    /** Load from the input stream or reader as an XML file  (`InputType.Xml`), as opposed to a flat file. */
+    def asXml(): LoaderBuilder =
+      new LoaderBuilder(fromInputStreamOpt, fromReaderOpt, mappedPropsOpt, defaultJavPropsOpt, Some(InputType.Xml),
+        patternEvaluatorOpt, patternExpanderOpt)
 
-    def asFlatfile(): Builder =
-      new Builder(keySubstitutionFlavor, fromInputStreamOpt, fromReaderOpt,
-        mappedPropsOpt, defaultJavPropsOpt, Some(InputType.Xml), patternEvaluatorOpt)
+    /** Provide a `PatternEvaluator` instance. If `patternExpanderMaker` is also defined, `patternEvaluator` will ignored. */
+    def patternEvalulator(patternEvaluator: PatternEvaluator) : LoaderBuilder =
+      new LoaderBuilder(fromInputStreamOpt, fromReaderOpt, mappedPropsOpt, defaultJavPropsOpt, inputTypeOpt,
+        Some(patternEvaluator), patternExpanderOpt)
 
-    def patternEvalulator(patternEvaluator: PatternEvaluator) : Builder =
-      new Builder(keySubstitutionFlavor, fromInputStreamOpt, fromReaderOpt,
-        mappedPropsOpt, defaultJavPropsOpt, inputTypeOpt, Some(patternEvaluator))
+    /** Provide a `PatternExpanderMaker` instance. The PatternExpanderMaker supercedes the PatternEvaluator,
+     *  so that if both are defined, `patternEvaluator` will ignored since The PatternExpander carries
+     *  its own PatternEvaluator.
+     */
+    def patternExpanderMaker(patternExpanderMaker: PatternExpanderMaker) : LoaderBuilder =
+      new LoaderBuilder(fromInputStreamOpt, fromReaderOpt, mappedPropsOpt, defaultJavPropsOpt, inputTypeOpt,
+        patternEvaluatorOpt, Some(patternExpanderMaker))
 
+    /** Load and build JavaProperties, configure and return a new `KeyedProperties` instance wrapping the newly
+     *  built JavaProperties instance, giving a new pattern expander according to the configuration.
+     *  When provided, the newly created JavaProperties' keys will be loaded and superceded with the defaults,
+     *  input stream, reader, and mapped properties in that order.
+     */
     def build(): KeyedProperties = {
+
       val jProps: JavaProperties = defaultJavPropsOpt match {
         case Some(defaults) => new JavaProperties(defaults)
         case None           => new JavaProperties()
@@ -190,7 +208,13 @@ object KeyedProperties {
       mappedPropsOpt.map(loadIntoJavaProperties(_, jProps))
       val patternEvaluator: PatternEvaluator = patternEvaluatorOpt.getOrElse(DefaultPatternEvaluator)
 
-      new KeyedProperties(jProps, keySubstitutionFlavor, patternEvaluator)
+      val patternExpanderMaker: PatternExpanderMaker = patternExpanderOpt match {
+        case Some(pemaker) => pemaker
+        case None          => (params: KeyedPropertiesParams, props: JavaProperties) =>
+                               PatternExpander.default(params, props, patternEvaluator)
+      }
+
+      new KeyedProperties(jProps, patternExpanderMaker)
     }
 
   }
