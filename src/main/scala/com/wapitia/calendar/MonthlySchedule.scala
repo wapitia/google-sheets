@@ -3,7 +3,7 @@ package calendar
 
 import java.time.LocalDate
 
-/** Create a schedule object suitable for creating a stream of monthly dates.
+/** A schedule suitable for creating a stream of monthly dates.
  *  Monthly-like Schedules include bi-monthly, semi-monthly, quarterly, annually,
  *  anything that aligns with the first of some month.
  *
@@ -14,7 +14,7 @@ import java.time.LocalDate
  *                     must be less than monthlyCycle.
  *
  */
-class MonthlySchedule(day1f: DayOfMonthAdjust, working: WorkingSchedule, monthCycle: Int, monthOffset: Int)
+class MonthlySchedule(day1f: ScheduleDayOfMonth, working: WorkingSchedule, monthCycle: Int, monthOffset: Int)
 extends Schedule
 {
 
@@ -45,7 +45,6 @@ extends Schedule
     loop(candidateCycleDate)
   }
 
-
 }
 
 object MonthlySchedule {
@@ -57,21 +56,21 @@ object MonthlySchedule {
   def builder() = new Builder(None, None, None, None)
 
   class Builder(
-      dayfuncOpt: Option[DayOfMonthAdjust],
+      dayfuncOpt: Option[ScheduleDayOfMonth],
       workingSchedOpt: Option[WorkingSchedule],
       monthCycleOpt: Option[Int],
       monthOffsetOpt: Option[Int]
   ) {
 
-    def monthly(dayOfMonth: Int): Builder = monthly(new DayOfMonthBounded(dayOfMonth))
+    def monthly(dayOfMonth: Int): Builder = monthly(new BoundedFixedScheduleDayOfMonth(dayOfMonth))
 
-    def monthly(dayOfMonthAdj: DayOfMonthAdjust) = dayOfMonth(dayOfMonthAdj).cycle(1).monthOffset(0)
+    def monthly(dayOfMonthAdj: ScheduleDayOfMonth) = dayOfMonth(dayOfMonthAdj).cycle(1).monthOffset(0)
 
     def cycle(nMonths: Int): Builder = new Builder(dayfuncOpt, workingSchedOpt, Some(nMonths), monthOffsetOpt)
 
     def monthOffset(nOffset: Int): Builder = new Builder(dayfuncOpt, workingSchedOpt, monthCycleOpt, Some(nOffset))
 
-    def dayOfMonth(dayOfMonthAdj: DayOfMonthAdjust): Builder  = new Builder(Some(dayOfMonthAdj), workingSchedOpt, monthCycleOpt, monthOffsetOpt)
+    def dayOfMonth(dayOfMonthAdj: ScheduleDayOfMonth): Builder  = new Builder(Some(dayOfMonthAdj), workingSchedOpt, monthCycleOpt, monthOffsetOpt)
 
     def workingSched(sched: WorkingSchedule): Builder  = new Builder(dayfuncOpt, Some(sched), monthCycleOpt, monthOffsetOpt)
 
@@ -95,10 +94,10 @@ object MonthlySchedule {
   def monthly(day1: Int): Schedule = builder().monthly(day1).build
 
   /** The last day of the month, which fluctuates 31,28,31, etc. */
-  def endOfMonth(): Schedule = builder().monthly(new DayOfMonthBounded(HighestLastDayOfMonth)).build
+  def endOfMonth(): Schedule = builder().monthly(new BoundedFixedScheduleDayOfMonth(HighestLastDayOfMonth)).build
 
   /** The last day of each month but for which  */
-  def endOfMonth(working: WorkingSchedule): Schedule = builder().monthly(new DayOfMonthBounded(HighestLastDayOfMonth)).build
+  def endOfMonth(working: WorkingSchedule): Schedule = builder().monthly(new BoundedFixedScheduleDayOfMonth(HighestLastDayOfMonth)).build
 
   /**
    * @param monthOffset
@@ -130,8 +129,8 @@ object MonthlySchedule {
    */
   def annually(sampleDate: LocalDate): Schedule = ???  // TODO
 
-  def multiMonthSchedule(dayOfMonthAdj: DayOfMonthAdjust, startMonth: Int, monthlyCycle: Int): Schedule =
-    builder.monthly(new DayOfMonthBounded(HighestLastDayOfMonth)).build
+  def multiMonthSchedule(dayOfMonthAdj: ScheduleDayOfMonth, startMonth: Int, monthlyCycle: Int): Schedule =
+    builder.monthly(new BoundedFixedScheduleDayOfMonth(HighestLastDayOfMonth)).build
 
   /** find the latest month in the cycle that is on or before the given month
    *  The day of month from the targetDate is not used, just the year and month.
@@ -159,8 +158,4 @@ object MonthlySchedule {
     else
       (year,month0)
 
-
-
 }
-
-

@@ -210,8 +210,9 @@ object KeyedProperties {
 
       val patternExpanderMaker: PatternExpanderMaker = patternExpanderOpt match {
         case Some(pemaker) => pemaker
-        case None          => (params: KeyedPropertiesParams, props: JavaProperties) =>
-                               PatternExpander.default(params, props, patternEvaluator)
+        case None          =>
+          (params: KeyedPropertiesParams, props: JavaProperties) =>
+            PatternExpander.default(params, props, patternEvaluator)
       }
 
       new KeyedProperties(jProps, patternExpanderMaker)
