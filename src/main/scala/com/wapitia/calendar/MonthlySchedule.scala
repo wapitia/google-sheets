@@ -14,19 +14,19 @@ import java.time.LocalDate
  *                     must be less than monthlyCycle.
  *
  */
-class MonthlySchedule(day1f: ScheduleDayOfMonth, working: WorkingSchedule, monthCycle: Int, monthOffset: Int)
+class MonthlySchedule(dom: ScheduleDayOfMonth, working: WorkingSchedule, monCycle: MonthlyCycle)
 extends Schedule
 {
 
   import MonthlySchedule._
 
   def monthCycleIncr(candidateDate: LocalDate): LocalDate = {
-    monthWithAdjust(candidateDate.plusMonths(monthCycle))
+    monthWithAdjust(candidateDate.plusMonths(monCycle.monthsInCycle))
   }
 
   // infuse the given month with the proper day of month according to the given DayOfMonthAdjustment
   def monthWithAdjust(monDate: LocalDate): LocalDate = {
-    monDate.withDayOfMonth(day1f.dayOfMonthOf(monDate))
+    monDate.withDayOfMonth(dom.dayOfMonthOf(monDate))
   }
 
   override def onOrAfter(onOrAfterDate: LocalDate): Stream[LocalDate] = {
@@ -37,7 +37,7 @@ extends Schedule
       else
         monthWithAdjust(candidateDate)
 
-    val earliestPossibleCycleDate = cycleMonthOnOrBefore(onOrAfterDate, monthCycle, monthOffset)
+    val earliestPossibleCycleDate = monCycle.cycleStartDate(onOrAfterDate)
     val candidateCycleDate = assureOnOrAfter(earliestPossibleCycleDate)
 
     def loop(v: LocalDate): Stream[LocalDate] = v #:: loop(monthCycleIncr(v))
@@ -49,113 +49,69 @@ extends Schedule
 
 object MonthlySchedule {
 
-  val FirstDayOfMonth = 1
-  val LowestLastDayOfMonth = 28   // that would be February
-  val HighestLastDayOfMonth = 31
-
-  def builder() = new Builder(None, None, None, None)
+  def builder() = new Builder(None, None,  MonthlyCycle.builder())
 
   class Builder(
       dayfuncOpt: Option[ScheduleDayOfMonth],
       workingSchedOpt: Option[WorkingSchedule],
-      monthCycleOpt: Option[Int],
-      monthOffsetOpt: Option[Int]
-  ) {
+      monCycleBuilder: MonthlyCycle.Builder) {
 
-    def monthly(dayOfMonth: Int): Builder = monthly(new BoundedFixedScheduleDayOfMonth(dayOfMonth))
+    def monthsInCycle(nMonths: Int): Builder = new Builder(dayfuncOpt, workingSchedOpt, monCycleBuilder.monthsInCycle(nMonths))
 
-    def monthly(dayOfMonthAdj: ScheduleDayOfMonth) = dayOfMonth(dayOfMonthAdj).cycle(1).monthOffset(0)
+    def monthOffset(nOffset: Int): Builder = new Builder(dayfuncOpt, workingSchedOpt, monCycleBuilder.offset(nOffset))
 
-    def cycle(nMonths: Int): Builder = new Builder(dayfuncOpt, workingSchedOpt, Some(nMonths), monthOffsetOpt)
+    def monthlyCycle(monCycle: MonthlyCycle): Builder = new Builder(dayfuncOpt, workingSchedOpt, monCycleBuilder.set(monCycle))
 
-    def monthOffset(nOffset: Int): Builder = new Builder(dayfuncOpt, workingSchedOpt, monthCycleOpt, Some(nOffset))
+    def dayOfMonth(day: Int): Builder = dayOfMonth(new BoundedFixedScheduleDayOfMonth(day))
 
-    def dayOfMonth(dayOfMonthAdj: ScheduleDayOfMonth): Builder  = new Builder(Some(dayOfMonthAdj), workingSchedOpt, monthCycleOpt, monthOffsetOpt)
+    def dayOfMonth(dayOfMonthAdj: ScheduleDayOfMonth): Builder = new Builder(Some(dayOfMonthAdj), workingSchedOpt, monCycleBuilder)
 
-    def workingSched(sched: WorkingSchedule): Builder  = new Builder(dayfuncOpt, Some(sched), monthCycleOpt, monthOffsetOpt)
+    def workingSched(sched: WorkingSchedule): Builder  = new Builder(dayfuncOpt, Some(sched), monCycleBuilder)
 
-    def validate {
-      if (dayfuncOpt.isEmpty) throw new RuntimeException("MonthSchedule.Builder month of day not defined")
-      if (monthCycleOpt.isEmpty) throw new RuntimeException("MonthSchedule.Builder monthly cycle not defined")
-      if (monthCycleOpt.get <= 0) throw new RuntimeException("MonthSchedule.Builder monthly cycle must be a positive integer")
-      if (monthOffsetOpt.isEmpty) throw new RuntimeException("MonthSchedule.Builder monthly cycle not defined")
-      if (monthOffsetOpt.get < 0) throw new RuntimeException("MonthSchedule.Builder monthly offset must be a non-negative integer")
-      if (monthOffsetOpt.get >= monthCycleOpt.get) throw new RuntimeException("MonthSchedule.Builder monthly offset must be less than cycle size")
+    def build(): MonthlySchedule = {
+      val schedDayOfMonth: ScheduleDayOfMonth = dayfuncOpt.getOrElse(ScheduleDayOfMonth.FirstDay)
+      val workingSched: WorkingSchedule = workingSchedOpt.getOrElse(WorkingSchedule.any)
+      val monthlyCycle: MonthlyCycle = monCycleBuilder.build()
+      new MonthlySchedule(schedDayOfMonth, workingSched, monthlyCycle)
     }
 
-    def build(): Schedule = {
-      validate
-      new MonthlySchedule(dayfuncOpt.get, workingSchedOpt.getOrElse(WorkingSchedule.any),
-        monthCycleOpt.get, monthOffsetOpt.get)
-    }
   }
 
   /** Monthly on the given day with no adjustment */
-  def monthly(day1: Int): Schedule = builder().monthly(day1).build
+  def monthly(day1: Int): MonthlySchedule =
+    builder().dayOfMonth(day1)
+      .workingSched(WorkingSchedule.any).monthlyCycle(MonthlyCycle.Monthly).build
+
+  /** First day of the month with no adjustment */
+  def firstOfMonth(): MonthlySchedule =
+    builder().dayOfMonth(ScheduleDayOfMonth.FirstDay)
+      .workingSched(WorkingSchedule.any).monthlyCycle(MonthlyCycle.Monthly).build
+
+  /** First day of the month adjusted by working schedule */
+  def firstOfMonth(working: WorkingSchedule): MonthlySchedule =
+    builder().dayOfMonth(ScheduleDayOfMonth.FirstDay)
+      .workingSched(working).monthlyCycle(MonthlyCycle.Monthly).build
 
   /** The last day of the month, which fluctuates 31,28,31, etc. */
-  def endOfMonth(): Schedule = builder().monthly(new BoundedFixedScheduleDayOfMonth(HighestLastDayOfMonth)).build
+  def endOfMonth(): MonthlySchedule =
+    builder().dayOfMonth(ScheduleDayOfMonth.LastDay)
+      .workingSched(WorkingSchedule.any).monthlyCycle(MonthlyCycle.Monthly).build
 
-  /** The last day of each month but for which  */
-  def endOfMonth(working: WorkingSchedule): Schedule = builder().monthly(new BoundedFixedScheduleDayOfMonth(HighestLastDayOfMonth)).build
+  /** The last day of the month adjusted by working schedule */
+  def endOfMonth(working: WorkingSchedule): MonthlySchedule =
+    builder().dayOfMonth(ScheduleDayOfMonth.LastDay)
+      .workingSched(working).monthlyCycle(MonthlyCycle.Monthly).build
 
-  /**
-   * @param monthOffset
-   */
   def biMonthly(day1: Int, monthOffset: Int): Schedule = ???  // TODO
 
-  /**
-   * @param monthOffset
-   */
-  def biMonthly(day1: Int, sampleMonth: LocalDate): Schedule = ???  // TODO
+  def biMonthly(day1: Int, sampleDate: LocalDate): Schedule = ???  // TODO
 
-  /**
-   * @param monthOffset
-   */
-  def quarterly(quarterlyDay: Int, monthOffset: Int): Schedule = ???  // TODO
+  def quarterly(sampleDate: Int, monthOffset: Int): Schedule = ???  // TODO
 
-  /**
-   * @param monthOffset
-   */
   def quarterly(dayOfMonth: Int, sampleMonth: LocalDate): Schedule = ???  // TODO
 
-  /**
-   * @param monthOffset
-   */
   def annually(dayOfYear: Int): Schedule = ???  // TODO
 
-  /**
-   * @param monthOffset
-   */
   def annually(sampleDate: LocalDate): Schedule = ???  // TODO
-
-  def multiMonthSchedule(dayOfMonthAdj: ScheduleDayOfMonth, startMonth: Int, monthlyCycle: Int): Schedule =
-    builder.monthly(new BoundedFixedScheduleDayOfMonth(HighestLastDayOfMonth)).build
-
-  /** find the latest month in the cycle that is on or before the given month
-   *  The day of month from the targetDate is not used, just the year and month.
-   *  The result date will start at day-of-month 1.
-   */
-  def cycleMonthOnOrBefore(targetDate: LocalDate, monthCycle: Int, monthOffset: Int): LocalDate = {
-    val cyclemonth0 = cycleMonth0(targetDate, monthCycle, monthOffset)
-    val (resYear:Int, resMonth0:Int) = norm(targetDate.getYear, cyclemonth0)
-    val resultDate = LocalDate.of(resYear, resMonth0+1, 1)
-    resultDate
-  }
-
-  def cycleMonth0(targetDate: LocalDate, monthCycle: Int, monthOffset: Int): Int = {
-    val targetMonth0 = targetDate.getMonthValue - 1  // 0 to 11
-    val nunc: Int = Math.floor((targetMonth0 - monthOffset).toFloat / monthCycle.toFloat).toInt
-    val cyclemonth0: Int = nunc * monthCycle + monthOffset
-    cyclemonth0
-  }
-
-  def norm(year: Int, month0: Int): (Int,Int) =
-    if (month0 >= MonthsPerYear)
-      norm(year+1, month0 - MonthsPerYear)
-    else if (month0 < 0)
-      norm(year-1, month0 + MonthsPerYear)
-    else
-      (year,month0)
 
 }

@@ -21,10 +21,6 @@ class FixedScheduleDayOfMonth(dayOfMonth: Int) extends ScheduleDayOfMonth {
   override def dayOfMonthOf(month: LocalDate): Int = dayOfMonth max 1
 }
 
-/** Always 1. Convenience class as first day of month is common
- */
-class FirstDayOfMonth extends FixedScheduleDayOfMonth(1)
-
 /** Fixed day of month  */
 class BoundedFixedScheduleDayOfMonth(dayOfMonth: Int) extends FixedScheduleDayOfMonth(dayOfMonth)  {
 
@@ -32,4 +28,9 @@ class BoundedFixedScheduleDayOfMonth(dayOfMonth: Int) extends FixedScheduleDayOf
 
 }
 
-class LastDayOfMonth  extends BoundedFixedScheduleDayOfMonth(31)
+object ScheduleDayOfMonth {
+
+  val FirstDay = new FixedScheduleDayOfMonth(1)
+  val LastDay = new BoundedFixedScheduleDayOfMonth(31)
+}
+
