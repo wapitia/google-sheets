@@ -2,6 +2,9 @@ package com.wapitia
 package properties
 
 import java.util.{Properties => JavaProperties}
+import properties.{PatternEvaluator => PatEval}
+import properties.{KeyedPropertiesParams => KeyedParams}
+import properties.{OptionalPropertyValue => OptVal}
 
 trait PatternExpander {
 
@@ -11,7 +14,7 @@ trait PatternExpander {
   /** Resolve the keyed property by the given name, or else return the optional default value.
    *  @return the resolved key's value if found, or the optDefault if it is Something, or else `None`.
    */
-  def getKeyedProperty(key: String, optDefault: Option[String]): Option[String]
+  def getKeyedProperty(key: String, optDefault: OptVal): OptVal
 
 }
 
@@ -24,20 +27,21 @@ trait PatternExpander {
  *  When a pattern is expanded, its contents are then expanded too, recursively, so that an infinite
  *  loop may occur here as well.
  */
-class SimplePatternExpander(params: KeyedPropertiesParams, props: JavaProperties, eval: PatternEvaluator) extends PatternExpander {
+class SimplePatternExpander(params: KeyedParams, props: JavaProperties, eval: PatEval) extends PatternExpander {
 
   val dollar = '$'
   val opencurly = '{'
   val closecurly = '}'
 
-  override def getKeyedProperty(key: String, optDefault: Option[String]): Option[String] = {
+  override def getKeyedProperty(key: String, optDefault: OptVal): OptVal = {
     val resolvedKey: String = parse(key)
-    val rawValue: Option[String] = eval.getValue(resolvedKey, params, props)
-    val rawOrDefault: Option[String] = rawValue.orElse(optDefault)
+    val rawValue: OptVal = eval.getValue(resolvedKey, params, props)
+    val rawOrDefault: OptVal = rawValue.orElse(optDefault)
     rawOrDefault.map(parse(_))
   }
 
-  override def parse(s: String): String = praw(s)
+  override def parse(s: String): String =
+    praw(s)
 
   private def praw(s: String): String = s.length match {
     case 0 => ""
@@ -82,7 +86,7 @@ class SimplePatternExpander(params: KeyedPropertiesParams, props: JavaProperties
 
 object PatternExpander {
 
-  def default(params: KeyedPropertiesParams, props: JavaProperties, eval: PatternEvaluator): PatternExpander =
+  def default(params: KeyedParams, props: JavaProperties, eval: PatEval): PatternExpander =
     new SimplePatternExpander(params, props, eval)
 
 }

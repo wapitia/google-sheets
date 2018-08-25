@@ -10,7 +10,13 @@ package object properties {
   /** Properties params are named optional properties, the "Optional"
    *  functionality allowing an overwrite of property "not found"
    */
-  type KeyedPropertiesParams = Map[String,Option[String]]
+  type OptionalPropertyValue = Option[String]
+  type KeyedPropertiesParams = Map[String,OptionalPropertyValue]
+
+  /** Producer of a `PatternExpander` when given `KeyedPropertiesParams`, and `JavaProperties`.
+   *  The produced `PatternExpander` is configured with an implicit `PatternEvaluator`.
+   */
+  type PatternExpanderMaker = (KeyedPropertiesParams, JavaProperties) => PatternExpander
 
   sealed trait InputType extends InputType.Value with EValue[InputType]
 
