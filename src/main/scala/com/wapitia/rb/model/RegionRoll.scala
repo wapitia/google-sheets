@@ -1,8 +1,7 @@
 package com.wapitia.rb
 package model
 
-import com.wapitia.common.Enum
-import com.wapitia.common.EValue
+import com.wapitia.common.{Enum, EValue}
 
 /** enum BlackRoll { case Odd, Even }  */
 sealed trait BlackRoll extends BlackRoll.Value with EValue[BlackRoll]
