@@ -4,8 +4,8 @@ package marshal
 
 import java.time.LocalDate
 
-import com.wapitia.calendar.Cycle
-import com.wapitia.calendar.CycleMarshaller
+import com.wapitia.calendar.CycleKind
+import com.wapitia.calendar.CycleKindMarshaller
 import com.wapitia.financial.TransactionTemplate
 import com.wapitia.common.marshal.InMarshal
 import com.wapitia.spreadsheet.marshal.{intMarshal,boolMarshal,simpleStringMarshal,nullableCurrencyMarshal,LabelledSheetMarshal}
@@ -28,12 +28,12 @@ class TransactionTemplateMarshaller extends LabelledSheetMarshal[TransactionTemp
     val intoCurrency = nullableCurrencyMarshal
     val intoBool = boolMarshal
     val intoInt = intMarshal
-    val intoCycle = CycleMarshaller.Into
+    val intoCycle = CycleKindMarshaller.Into
 
     marshalChain("Item",             intoString, (m: RowBuilder, str: String) => m.rb = m.rb.item(str) )
     marshalChain("Next Transaction", intoDate, (m: RowBuilder, date: LocalDate) => m.rb = m.rb.nextTrans(date) )
     marshalChain("Amount",           intoCurrency, (m: RowBuilder, currency: BigDecimal) => m.rb = m.rb.amount(currency) )
-    marshalChain("Cycle",            intoCycle, (m: RowBuilder, v: Cycle) => m.rb = m.rb.cycle(v) )
+    marshalChain("Cycle",            intoCycle, (m: RowBuilder, v: CycleKind) => m.rb = m.rb.cycleKind(v) )
     marshalChain("CycleRefDate",     intoDate, (m: RowBuilder, date: LocalDate) => m.rb = m.rb.cycleRefDate(date) )
     marshalChain("Max",              intoCurrency, (m: RowBuilder, currency: BigDecimal) => m.rb = m.rb.max(currency) )
     marshalChain("Last Pmt Date",    intoDate, (m: RowBuilder, date: LocalDate) => m.rb = m.rb.lastPmtDate(date) )

@@ -11,7 +11,6 @@ import java.time.YearMonth
  */
 case class MonthlyCycle(monthsInCycle: Int, monthOffset: Int) extends CycleTemplate(monthsInCycle, monthOffset) {
 
-
   /** Determine the index of the month of a target date within a monthly cycle.
    *  `
    *  monthCycle monthOffset Month of date       = result
@@ -67,7 +66,7 @@ object MonthlyCycle {
 
   /** Builder class adding convenience methods to accumulate each parameter individually or together. */
   class Builder(monthCycleOpt: Option[Int], monthOffsetOpt: Option[Int], monthCycleDefault: => Int)
-    extends CycleTemplate.Builder[MonthlyCycle,MonthlyCycle.Builder](monthCycleOpt, monthOffsetOpt, monthCycleDefault) 
+    extends CycleTemplate.Builder[MonthlyCycle,MonthlyCycle.Builder](monthCycleOpt, monthOffsetOpt, monthCycleDefault)
   {
     override def builderConstructor(monthCycleOpt: Option[Int], monthOffsetOpt: Option[Int], monthCycleDefault: => Int): Builder =
       new Builder(monthCycleOpt, monthOffsetOpt, monthCycleDefault)
