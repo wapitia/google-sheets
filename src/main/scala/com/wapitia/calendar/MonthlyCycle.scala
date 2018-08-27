@@ -9,10 +9,8 @@ import java.time.YearMonth
  *  @param monthCycle number of months in the cycle, must be a positive number.
  *  @param monthOffset offset of the start month in the cycle, must be non-negative and less than monthCycle.
  */
-case class MonthlyCycle(monthsInCycle: Int, monthOffset: Int) {
+case class MonthlyCycle(monthsInCycle: Int, monthOffset: Int) extends CycleTemplate(monthsInCycle, monthOffset) {
 
-  assert(monthsInCycle > 0)
-  assert(monthOffset >= 0 && monthOffset < monthsInCycle)
 
   /** Determine the index of the month of a target date within a monthly cycle.
    *  `
@@ -68,28 +66,13 @@ object MonthlyCycle {
   def builder(): Builder = new Builder(None,None,defaultMonthCycle)
 
   /** Builder class adding convenience methods to accumulate each parameter individually or together. */
-  class Builder(monthCycleOpt: Option[Int], monthOffsetOpt: Option[Int], monthCycleDefault: => Int) {
+  class Builder(monthCycleOpt: Option[Int], monthOffsetOpt: Option[Int], monthCycleDefault: => Int)
+    extends CycleTemplate.Builder[MonthlyCycle,MonthlyCycle.Builder](monthCycleOpt, monthOffsetOpt, monthCycleDefault) 
+  {
+    override def builderConstructor(monthCycleOpt: Option[Int], monthOffsetOpt: Option[Int], monthCycleDefault: => Int): Builder =
+      new Builder(monthCycleOpt, monthOffsetOpt, monthCycleDefault)
 
-    /** set the months-in-cycle component.
-     *  Warning this will reduce the offset if previously set be one less than this monthCycle.
-     *  Otherwise sets offset to 0.
-     */
-    def monthsInCycle(monthCycle: Int): Builder = new Builder(Some(monthCycle), monthOffsetOpt, monthCycleDefault)
-
-    /** Set the month offset component.
-     *  Warning this will set the months-in-cycle to be one more than this offset if not previously set
-     *  or if currently set less than or equal to this offset.
-     */
-    def offset(monthOffset: Int): Builder = new Builder(monthCycleOpt, Some(monthOffset), monthCycleDefault)
-
-    def set(obj: MonthlyCycle): Builder = new Builder(Some(obj.monthsInCycle), Some(obj.monthOffset), monthCycleDefault)
-
-    /** Return the accumulated object, or `Monthly` by default. */
-    def build(): MonthlyCycle = {
-      val monthCycle: Int = monthCycleOpt.getOrElse(monthCycleDefault)
-      val monthOffset: Int = monthOffsetOpt.getOrElse(0)
-      MonthlyCycle(monthCycle,monthOffset)
-    }
+    override def objConstructor(cycleSize: Int, offset: Int): MonthlyCycle = MonthlyCycle(cycleSize, offset)
   }
 
   /** Calculate the cycle start date for a given date in the cycle.
