@@ -2,6 +2,9 @@ package com.wapitia
 package properties
 
 import java.util.{Properties => JavaProperties}
+import properties.{PatternEvaluator => PatEval}
+import properties.{KeyedPropertiesParams => KeyedParams}
+import properties.{OptionalPropertyValue => OptVal}
 
 /** KeyedProperties wraps a Java `Properties` object with pattern substitution
  *  availability.
@@ -68,49 +71,52 @@ import java.util.{Properties => JavaProperties}
  *  TODO: This is the plan anyway
  *
  */
-class KeyedProperties(props: JavaProperties, makePatternExpander: KeyedProperties.PatternExpanderMaker) {
+class KeyedProperties(props: JavaProperties, makePatternExpander: PatternExpanderMaker) {
 
-  /** public access to wrapped java Properties so that client might store them externally, etc. */
+  /** public access to wrapped java Properties so that client might
+   *  set additional properties, to store them externally, etc.
+   */
   val javaProperties = props
 
-  def getProperty(key: String): Option[String] = getProperty(key, None)
+  def getProperty(key: String): OptVal =
+    getProperty(key, None.asInstanceOf[OptVal])
 
-  def getProperty(key: String, defaultValue: String): Option[String] = getProperty(key, Some(defaultValue))
+  def getProperty(key: String, defaultValue: String): OptVal =
+    getProperty(key, Some(defaultValue))
 
-  def getProperty(key: String, optDefault: Option[String]): Option[String] = optDefault match {
-    case Some(defaults) => Option(props.getProperty(key, defaults))
-    case None           => Option(props.getProperty(key))
+  def getProperty(key: String, optDefault: OptVal): OptVal = {
+    val nullableValue: String = optDefault match {
+      case Some(defaults) => props.getProperty(key, defaults)
+      case None           => props.getProperty(key)
+    }
+    Option(nullableValue)
   }
 
-  def getKeyedProperty(key: String): Option[String] =
-    getKeyedProperty(KeyedProperties.NoParams, key, None)
+  def getKeyedProperty(key: String): OptVal =
+    getKeyedProperty(KeyedProperties.NoParams, key, None.asInstanceOf[OptVal])
 
   def getKeyedProperty(key: String, defaultValue: String): String =
     getKeyedProperty(KeyedProperties.NoParams, key, Some(defaultValue)).get
 
-  def getKeyedProperty(params: KeyedPropertiesParams, key: String): Option[String] =
-    getKeyedProperty(params, key, None)
+  def getKeyedProperty(params: KeyedParams, key: String): OptVal =
+    getKeyedProperty(params, key, None.asInstanceOf[OptVal])
 
-  def getKeyedProperty(params: KeyedPropertiesParams, key: String, defaultValue: String): String =
+  def getKeyedProperty(params: KeyedParams, key: String, defaultValue: String): String =
     getKeyedProperty(params, key, Some(defaultValue)).get
 
-  def getKeyedProperty(params: KeyedPropertiesParams, key: String, optDefault: Option[String]): Option[String] =
+  def getKeyedProperty(params: KeyedParams, key: String, optDefault: OptVal): OptVal =
     makePatternExpander(params, props).getKeyedProperty(key, optDefault)
 }
 
 object KeyedProperties {
 
-  /** Producer of a `PatternExpander` when given `KeyedPropertiesParams`, and `JavaProperties`.
-   *  The produced `PatternExpander` is configured with an implicit `PatternEvaluator`.
-   */
-  type PatternExpanderMaker = (KeyedPropertiesParams, JavaProperties) => PatternExpander
+  val NoParams = Map.empty.asInstanceOf[KeyedParams]
 
-  val NoParams = Map.empty.asInstanceOf[KeyedPropertiesParams]
-
-  def DefaultPatternEvaluator = PatternEvaluator.Default
+  def DefaultPatternEvaluator = PatEval.Default
 
   val DefaultPatternExpanderMaker: PatternExpanderMaker =
-    (params: KeyedPropertiesParams, props: JavaProperties) => PatternExpander.default(params, props, DefaultPatternEvaluator)
+    (params: KeyedParams, props: JavaProperties) =>
+      PatternExpander.default(params, props, DefaultPatternEvaluator)
 
   def apply(props: JavaProperties) =
     new KeyedProperties(props, DefaultPatternExpanderMaker)
@@ -141,7 +147,7 @@ object KeyedProperties {
       mappedPropsOpt: Option[Map[String,String]],
       defaultJavPropsOpt: Option[JavaProperties],
       inputTypeOpt: Option[InputType],
-      patternEvaluatorOpt: Option[PatternEvaluator],
+      patternEvaluatorOpt: Option[PatEval],
       patternExpanderOpt: Option[PatternExpanderMaker])
   {
     /** Provide the input stream from which to load Java Properties.
@@ -168,7 +174,9 @@ object KeyedProperties {
       new LoaderBuilder(fromInputStreamOpt, fromReaderOpt, mappedPropsOpt, Some(javaProps), inputTypeOpt,
         patternEvaluatorOpt, patternExpanderOpt)
 
-    /** Load from Input Stream or reader as a flat file (`InputType.Flat`), as opposed to an XML file. */
+    /** Load from Input Stream or reader as a flat file (`InputType.Flat`),
+     *  as opposed to an XML file. This is the default.
+     */
     def asFlatfile(): LoaderBuilder =
       new LoaderBuilder(fromInputStreamOpt, fromReaderOpt, mappedPropsOpt, defaultJavPropsOpt, Some(InputType.Flat),
         patternEvaluatorOpt, patternExpanderOpt)
@@ -179,7 +187,7 @@ object KeyedProperties {
         patternEvaluatorOpt, patternExpanderOpt)
 
     /** Provide a `PatternEvaluator` instance. If `patternExpanderMaker` is also defined, `patternEvaluator` will ignored. */
-    def patternEvalulator(patternEvaluator: PatternEvaluator) : LoaderBuilder =
+    def patternEvalulator(patternEvaluator: PatEval) : LoaderBuilder =
       new LoaderBuilder(fromInputStreamOpt, fromReaderOpt, mappedPropsOpt, defaultJavPropsOpt, inputTypeOpt,
         Some(patternEvaluator), patternExpanderOpt)
 
@@ -206,13 +214,14 @@ object KeyedProperties {
       fromInputStreamOpt.map(loadIntoJavaProperties(_, jProps, inputType))
       fromReaderOpt.map(loadIntoJavaProperties(_, jProps, inputType))
       mappedPropsOpt.map(loadIntoJavaProperties(_, jProps))
-      val patternEvaluator: PatternEvaluator = patternEvaluatorOpt.getOrElse(DefaultPatternEvaluator)
+      val patternEvaluator: PatEval =
+        patternEvaluatorOpt.getOrElse(DefaultPatternEvaluator)
 
-      val patternExpanderMaker: PatternExpanderMaker = patternExpanderOpt match {
-        case Some(pemaker) => pemaker
-        case None          => (params: KeyedPropertiesParams, props: JavaProperties) =>
-                               PatternExpander.default(params, props, patternEvaluator)
-      }
+      val patternExpanderMaker: PatternExpanderMaker =
+        patternExpanderOpt.getOrElse {
+          (params: KeyedParams, props: JavaProperties) =>
+            PatternExpander.default(params, props, patternEvaluator)
+        }
 
       new KeyedProperties(jProps, patternExpanderMaker)
     }

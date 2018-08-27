@@ -1,5 +1,7 @@
 package com.wapitia
 
+import java.time.LocalDate
+
 /** Calendar and Schedule global constants.
  *  Wapitia's calendar system is backed by [[java.time._]], and so
  *  these constants are derived from that system.
@@ -7,6 +9,8 @@ package com.wapitia
  *  surprising (and broken) if these changed.
  */
 package object calendar {
+
+  import scala.language.implicitConversions
 
   /** Wapitia's Epoch is the basis date 0 from which module date cycle
    *  offsets are relative.
@@ -38,5 +42,7 @@ package object calendar {
 
   /** An "exact" average number of days per month. Works out to be 30.436875 */
   val DaysPerMonth: Double = DaysPerYear / 12.0
+
+  implicit def toDate(s: String) = LocalDate.parse(s)
 
 }
