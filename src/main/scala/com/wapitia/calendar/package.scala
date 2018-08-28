@@ -1,6 +1,7 @@
 package com.wapitia
 
 import java.time.LocalDate
+import scala.util.matching.Regex
 
 /** Calendar and Schedule global constants.
  *  Wapitia's calendar system is backed by [[java.time._]], and so
@@ -9,8 +10,6 @@ import java.time.LocalDate
  *  surprising (and broken) if these changed.
  */
 package object calendar {
-
-  import scala.language.implicitConversions
 
   /** Wapitia's Epoch is the basis date 0 from which module date cycle
    *  offsets are relative.
@@ -26,11 +25,11 @@ package object calendar {
 
   /** Number of days per week which is 7 */
   val DaysPerWeek = java.time.DayOfWeek.values().length
-  assert(DaysPerWeek == 7)
+  assume(DaysPerWeek == 7)
 
   /** Number of months per year which is 12 */
   val MonthsPerYear = java.time.Month.values().length
-  assert(MonthsPerYear == 12)
+  assume(MonthsPerYear == 12)
 
   /** An "exact" average number of days per year.
    *  Accounts for leap years according to the
@@ -43,6 +42,18 @@ package object calendar {
   /** An "exact" average number of days per month. Works out to be 30.436875 */
   val DaysPerMonth: Double = DaysPerYear / 12.0
 
-  implicit def toDate(s: String) = LocalDate.parse(s)
+  /** Only strict canonical date patterns of the form "yyyy-mm-dd" are allowed, where year can be any 4-digit value. */
+  val LocalDatePattern: Regex = "^[0-9]{4}\\-(1[0-2]|0[1-9])\\-(3[01]|[12][0-9]|0[1-9])$".r
+
+  import scala.language.implicitConversions
+
+  /** Convert date string of the form "yyyy-mm-dd" (year-month-day), such as "2018-03-28" into a LocalDate.
+   *  This is made implicit since local data conversions are common in the `com.wapitia.calendar` client code,
+   *  and shouldn't be confused with other strings in the code.
+   */
+  implicit def toDate(s: String) = {
+    require(LocalDatePattern.findFirstIn(s).isDefined, s"Not a valid date string: '$s'")
+    LocalDate.parse(s)
+  }
 
 }

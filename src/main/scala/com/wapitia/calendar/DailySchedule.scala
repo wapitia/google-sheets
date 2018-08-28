@@ -34,7 +34,8 @@ extends Schedule {
   // according to nCycleDays and dayOffset.
    *
    */
-  def cycleAnchorDate(onOrAfterDate: LocalDate): LocalDate = DailySchedule.cycleAnchorDate(onOrAfterDate, dailyCycle)
+  def cycleAnchorDate(onOrAfterDate: LocalDate): LocalDate =
+    DailySchedule.cycleAnchorDate(onOrAfterDate, dailyCycle)
 }
 
 object DailySchedule {
@@ -54,12 +55,17 @@ object DailySchedule {
   /** Builder traverses weekly with the week starting on Sunday. */
   def weeklyStartingSunday(): Builder = weekly(SUNDAY)
 
+  /** Builder traverses weekly with the week starting on Sunday. */
+  def weeklyStartingMonday(): Builder = weekly(MONDAY)
+
   /** Builder traverses weekly, starting at a particular day of the week. */
   def mutipleWeekly(weeksInCycle: Int, startDayOfWeek: DayOfWeek, startCycleWeekOffset: Int): Builder = {
     require(weeksInCycle > 0)
     require(startCycleWeekOffset >= 0)
     require(startCycleWeekOffset < weeksInCycle)
-    builder(DailyCycle(DaysPerWeek * weeksInCycle, calcCycleWeekOffset(startDayOfWeek, startCycleWeekOffset)))
+    val daysInCycle = DaysPerWeek * weeksInCycle
+    val offset = calcCycleWeekOffset(daysInCycle, startDayOfWeek, startCycleWeekOffset)
+    builder(DailyCycle(daysInCycle, offset))
   }
 
   /** Builder traverses weekly, starting at a particular day of the week. */
@@ -150,8 +156,11 @@ object DailySchedule {
     ???
   }
 
-  def calcCycleWeekOffset(startDayOfWeek: DayOfWeek, startCycleWeekOffset: Int): Int = {
-    startCycleWeekOffset * DaysPerWeek + DayOfWeekOffset
+  /** Compute the first day of the weekly cycle.
+   *
+   */
+  def calcCycleWeekOffset(daysInCycle: Int, startDayOfWeek: DayOfWeek, startCycleWeekOffset: Int): Int = {
+    (daysInCycle + startCycleWeekOffset * DaysPerWeek + DayOfWeekOffset + startDayOfWeek.getValue) % daysInCycle
   }
 
   def cycleSheduleDayMap(cycleDays: Seq[Int]): BitSet = BitSet(cycleDays: _*)
@@ -162,7 +171,7 @@ object DailySchedule {
    * according to nCycleDays and dayOffset.
    */
   def cycleAnchorDate(onOrAfterDate: LocalDate, dailyCycle: DailyCycle): LocalDate = {
-    val bde: Long = (dailyCycle.dayOffset - onOrAfterDate.toEpochDay()) % dailyCycle.daysInCycle
+    val bde: Long = (dailyCycle.daysInCycle + dailyCycle.dayOffset - onOrAfterDate.toEpochDay()) % dailyCycle.daysInCycle
     val baseDateEpoch: Long = if (bde > 0) bde - dailyCycle.daysInCycle else bde
     val res = onOrAfterDate.plusDays(baseDateEpoch)
     res
