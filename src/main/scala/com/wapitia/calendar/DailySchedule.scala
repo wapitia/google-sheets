@@ -109,7 +109,9 @@ object DailySchedule {
      */
     def withWeekDayOffsetsInCycle( dows: (Int, DayOfWeek)*) = {
       require(dailyCycle.daysInCycle % DaysPerWeek == 0)
-      withCycleDays(dows.map(tup => tup._1 * DaysPerWeek + dayOfWeekOffset(tup._2, dailyCycle.dayOffset)): _*)
+      withCycleDays(dows.map {
+          case (weekOffset, dayOfWeek) => weekOffset * DaysPerWeek + dayOfWeekOffset(dayOfWeek, dailyCycle.dayOffset)
+      }: _*)
     }
 
     /** Set the cyclic day(s) of the week in which the schedule falls.
