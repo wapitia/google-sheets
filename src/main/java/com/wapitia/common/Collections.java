@@ -30,8 +30,8 @@ public class Collections {
      * and only entry in the new list.
      */
     public static <K, V> void addToMapOfLists(Map<K, List<V>> map, K key, V value,
-            final Function<K, List<V>> listMaker) {
-        Collections.<K, List<V>>getOrCreateMapValue(map, key, listMaker).add(value);
+            Function<K, List<V>> listMaker) {
+        getOrCreateMapValue(map, key, listMaker).add(value);
     }
 
     /**
@@ -50,7 +50,7 @@ public class Collections {
      *                             value at key in the map.
      */
     public static <K, C> C getOrCreateMapValue(Map<K, C> map, K key,
-            final Function<K, C> defaultValueProvider) {
+            Function<K, C> defaultValueProvider) {
         return Optional.ofNullable(map.get(key))
             .orElseGet(new MapUpdater<>(map, key, defaultValueProvider));
     }
@@ -77,7 +77,7 @@ public class Collections {
          *                      default value when there is not a pre-existing
          *                      value at key in the map.
          */
-        MapUpdater(final Map<K, C> map, final K key, final Function<K, C> valueProvider) {
+        MapUpdater(Map<K, C> map, K key, Function<K, C> valueProvider) {
             this.map = map;
             this.key = key;
             this.valueProvider = valueProvider;
