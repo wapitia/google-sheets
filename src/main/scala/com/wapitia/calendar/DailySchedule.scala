@@ -50,7 +50,7 @@ object DailySchedule {
   def daily() = builder(DailyCycle.Daily)
 
   /** Builder traverses weekly, starting at a particular day of the week. */
-  def weekly(startDayOfWeek: DayOfWeek): Builder = mutipleWeekly(1, startDayOfWeek, 0)
+  def weekly(startDayOfWeek: DayOfWeek): Builder = multipleWeekly(1, startDayOfWeek, 0)
 
   /** Builder traverses weekly with the week starting on Sunday. */
   def weeklyStartingSunday(): Builder = weekly(SUNDAY)
@@ -63,18 +63,18 @@ object DailySchedule {
    *  @param startDayOfWeek start day of week of cycle.
    *  @param startCycleWeekOffset offset in weeks for the start of the cycle.
    */
-  def mutipleWeekly(weeksInCycle: Int, startDayOfWeek: DayOfWeek, startCycleWeekOffset: Int): Builder = {
+  def multipleWeekly(weeksInCycle: Int, startDayOfWeek: DayOfWeek, startCycleWeekOffset: Int): Builder = {
     require(weeksInCycle > 0)
     require(startCycleWeekOffset >= 0)
     require(startCycleWeekOffset < weeksInCycle)
     val daysInCycle = DaysPerWeek * weeksInCycle
     val offset = calcCycleWeekOffset(daysInCycle, startDayOfWeek, startCycleWeekOffset)
-
+    assert(offset < daysInCycle)
     builder(DailyCycle(daysInCycle, offset))
   }
 
   /** Builder traverses weekly, starting at a particular day of the week. */
-  def mutipleWeekly(weeksInCycle: Int, startDayOfWeek: DayOfWeek, withFirstWeekInCycleHavingDate: LocalDate): Builder =
+  def multipleWeekly(weeksInCycle: Int, startDayOfWeek: DayOfWeek, withFirstWeekInCycleHavingDate: LocalDate): Builder =
     builder(DailyCycle(DaysPerWeek * weeksInCycle, startCycleWeekOffset(withFirstWeekInCycleHavingDate, weeksInCycle, startDayOfWeek)))
 
   /**
@@ -118,8 +118,7 @@ object DailySchedule {
      */
     def withWeekDaysInCycle(dows: DayOfWeek*) = {
       require(dailyCycle.daysInCycle % DaysPerWeek == 0)
-      val dayOffsets: Seq[Int] = dows.map(tup => dayOfWeekOffsetX(tup, dailyCycle))
-      println(dayOffsets mkString ", ")
+      val dayOffsets: Seq[Int] = dows.map(tup => dayOfWeekOffset(tup, dailyCycle.offset))
       withCycleDays(dayOffsets: _*)
     }
 
@@ -142,19 +141,8 @@ object DailySchedule {
   }
 
   def dayOfWeekOffset(dow: DayOfWeek, cycleStartDayOffset: Int): Int = {
-    val dowo = dow.ordinal()
-    val res = dow.ordinal() - cycleStartDayOffset
-    if (res < 0) res + DaysPerWeek
-    else res
-  }
-
-  /**
-   *
-   */
-  def dayOfWeekOffsetX(dow: DayOfWeek, dailyCycle: DailyCycle): Int = {
-    val res = dow.ordinal - dailyCycle.dayOffset
-    if (res < 0) res + DaysPerWeek
-    else res
+    val res = dow.ordinal() - cycleStartDayOffset - DayOfWeekOffset + DaysPerWeek
+    res % DaysPerWeek
   }
 
   /** Calculate the day offset
