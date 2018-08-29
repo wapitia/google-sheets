@@ -23,7 +23,7 @@ import com.wapitia.common.{Enum,EValue}
  *    }
  *  }}}
  */
-sealed trait Cycle extends Cycle.Value with EValue[Cycle] {
+sealed trait CycleKind extends CycleKind.Value with EValue[CycleKind] {
   val daysInCycle: Int
   val monthsInCycle: Int
 
@@ -31,16 +31,16 @@ sealed trait Cycle extends Cycle.Value with EValue[Cycle] {
   val asMonths: Double = monthsInCycle.asInstanceOf[Double] + daysInCycle.asInstanceOf[Double] / DaysPerMonth
 }
 
-object Cycle extends Enum[Cycle] {
-  case object Daily extends Cycle{ val daysInCycle = 1; val monthsInCycle = 0 }
-  case object BiDaily extends Cycle{ val daysInCycle = 2; val monthsInCycle = 0 }
-  case object Weekly extends Cycle{ val daysInCycle = 7; val monthsInCycle = 0 }
-  case object BiWeekly extends Cycle{ val daysInCycle = 14; val monthsInCycle = 0 }
-  case object Monthly extends Cycle{ val daysInCycle = 0; val monthsInCycle = 1 }
-  case object BiMonthly extends Cycle{ val daysInCycle = 0; val monthsInCycle = 2 }
-  case object Quarterly extends Cycle{ val daysInCycle = 0; val monthsInCycle = 3 }
-  case object SemiAnnually extends Cycle{ val daysInCycle = 0; val monthsInCycle = 6 }
-  case object Annually extends Cycle{ val daysInCycle = 0; val monthsInCycle = 12 }
+object CycleKind extends Enum[CycleKind] {
+  case object Daily extends CycleKind{ val daysInCycle = 1; val monthsInCycle = 0 }
+  case object BiDaily extends CycleKind{ val daysInCycle = 2; val monthsInCycle = 0 }
+  case object Weekly extends CycleKind{ val daysInCycle = 7; val monthsInCycle = 0 }
+  case object BiWeekly extends CycleKind{ val daysInCycle = 14; val monthsInCycle = 0 }
+  case object Monthly extends CycleKind{ val daysInCycle = 0; val monthsInCycle = 1 }
+  case object BiMonthly extends CycleKind{ val daysInCycle = 0; val monthsInCycle = 2 }
+  case object Quarterly extends CycleKind{ val daysInCycle = 0; val monthsInCycle = 3 }
+  case object SemiAnnually extends CycleKind{ val daysInCycle = 0; val monthsInCycle = 6 }
+  case object Annually extends CycleKind{ val daysInCycle = 0; val monthsInCycle = 12 }
 
   val enumValues = List(Daily, BiDaily, Weekly, BiWeekly, Monthly, BiMonthly, Quarterly, SemiAnnually, Annually)
 }
