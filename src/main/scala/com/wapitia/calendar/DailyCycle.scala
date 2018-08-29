@@ -17,7 +17,7 @@ object DailyCycle {
 
   val Daily: DailyCycle = DailyCycle(1, 0)
 
-  def defaultDayCycle(): Int = throw new RuntimeException("Day Cycle Not Defined")
+  def defaultDayCycle(): Int = throw new RuntimeException("Day cycle size not defined")
 
   def builder(): Builder = new Builder(None, None, defaultDayCycle)
 
@@ -28,7 +28,8 @@ object DailyCycle {
     override def builderConstructor(dayCycleOpt: Option[Int], dayOffsetOpt: Option[Int], dayCycleDefault: => Int): Builder =
       new Builder(dayCycleOpt, dayOffsetOpt, dayCycleDefault)
 
-    override def objConstructor(cycleSize: Int, offset: Int): DailyCycle = DailyCycle(cycleSize, offset)
+    override def objConstructor(cycleSize: Int, offset: Int): DailyCycle =
+      DailyCycle(cycleSize, offset)
   }
 
 }

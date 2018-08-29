@@ -4,7 +4,7 @@ import java.time.{DayOfWeek, LocalDate}
 import org.junit.{Test, Ignore}
 import org.junit.Assert._
 
-class DailyScheduleProblems {
+class DailyScheduleProblemsTest {
 
   @Test  // @TODO
   def testWeeklySundayScheduleStream() {
@@ -12,7 +12,7 @@ class DailyScheduleProblems {
       .withWeekDaysInCycle(DayOfWeek.FRIDAY)
       .build()
     val dateStrm: Stream[LocalDate] = dsched.onOrAfter("2018-03-01")
-    val expecteds = List[LocalDate]("2018-03-02","2018-03-09","2018-03-16","2018-03-23").toStream
+    val expecteds = Stream[LocalDate]("2018-03-02","2018-03-09","2018-03-16","2018-03-23")
     (expecteds zip dateStrm).foreach {
       case (exp, act) => assertEquals(exp, act)
     }

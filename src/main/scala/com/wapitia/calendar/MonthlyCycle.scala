@@ -62,7 +62,7 @@ object MonthlyCycle {
 
   def defaultMonthCycle(): Int = throw new RuntimeException("Month Cycle Not Defined")
 
-  def builder(): Builder = new Builder(None,None,defaultMonthCycle)
+  def builder(): Builder = new Builder(None, None, defaultMonthCycle)
 
   /** Builder class adding convenience methods to accumulate each parameter individually or together. */
   class Builder(monthCycleOpt: Option[Int], monthOffsetOpt: Option[Int], monthCycleDefault: => Int)

@@ -58,13 +58,18 @@ object DailySchedule {
   /** Builder traverses weekly with the week starting on Sunday. */
   def weeklyStartingMonday(): Builder = weekly(MONDAY)
 
-  /** Builder traverses weekly, starting at a particular day of the week. */
+  /** Builder traverses weekly, starting at a particular day of the week.
+   *
+   *  @param startDayOfWeek start day of week of cycle.
+   *  @param startCycleWeekOffset offset in weeks for the start of the cycle.
+   */
   def mutipleWeekly(weeksInCycle: Int, startDayOfWeek: DayOfWeek, startCycleWeekOffset: Int): Builder = {
     require(weeksInCycle > 0)
     require(startCycleWeekOffset >= 0)
     require(startCycleWeekOffset < weeksInCycle)
     val daysInCycle = DaysPerWeek * weeksInCycle
     val offset = calcCycleWeekOffset(daysInCycle, startDayOfWeek, startCycleWeekOffset)
+
     builder(DailyCycle(daysInCycle, offset))
   }
 
@@ -108,7 +113,8 @@ object DailySchedule {
     }
 
     /** Set the cyclic day(s) of the week in which the schedule falls.
-     *  REQUIREMENT: The number of days in the cycle (parameter 'nCycleDays) must be a multiple of the DAYS_PER_WEEK, 7.
+     *  REQUIREMENT: The number of days in the cycle (parameter 'nCycleDays)
+     *  must be a multiple of the DAYS_PER_WEEK, 7.
      */
     def withWeekDaysInCycle(dows: DayOfWeek*) = {
       require(dailyCycle.daysInCycle % DaysPerWeek == 0)
@@ -142,8 +148,10 @@ object DailySchedule {
     else res
   }
 
+  /**
+   *
+   */
   def dayOfWeekOffsetX(dow: DayOfWeek, dailyCycle: DailyCycle): Int = {
-    val dowo = dow.ordinal
     val res = dow.ordinal - dailyCycle.dayOffset
     if (res < 0) res + DaysPerWeek
     else res
@@ -160,7 +168,11 @@ object DailySchedule {
    *
    */
   def calcCycleWeekOffset(daysInCycle: Int, startDayOfWeek: DayOfWeek, startCycleWeekOffset: Int): Int = {
-    (daysInCycle + startCycleWeekOffset * DaysPerWeek + DayOfWeekOffset + startDayOfWeek.getValue) % daysInCycle
+    // This is a weekly cycle, so daysInCycle must be a positive multiple of 7
+    require(daysInCycle > 0)
+    require(daysInCycle % DaysPerWeek == 0)
+    require(startCycleWeekOffset >= 0)
+    (startCycleWeekOffset * DaysPerWeek + DayOfWeekOffset + startDayOfWeek.getValue) % daysInCycle
   }
 
   def cycleSheduleDayMap(cycleDays: Seq[Int]): BitSet = BitSet(cycleDays: _*)
@@ -190,7 +202,7 @@ object DailySchedule {
    */
   def chunkCycleStream(onOrAfterDate: LocalDate, cycleAnchorDate: LocalDate, nCycleDays: Int, fCycleSheduleDayMap: LocalDate => BitSet): Stream[LocalDate] = {
 
-    require( ! cycleAnchorDate.isAfter(onOrAfterDate))
+    require(!cycleAnchorDate.isAfter(onOrAfterDate))
     require(cycleAnchorDate.isAfter(onOrAfterDate.minusDays(nCycleDays.toLong)))
     require(nCycleDays > 0)
 
