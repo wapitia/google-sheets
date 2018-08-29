@@ -1,11 +1,10 @@
 package com.wapitia.calendar
 
 import java.time.{DayOfWeek, LocalDate}
-import org.junit.{Test, Ignore}
-import org.junit.Assert._
 import java.time.format.DateTimeParseException
+import org.junit.{Test, Ignore, Rule}
+import org.junit.Assert._
 import org.junit.rules.ExpectedException
-import org.junit.Rule
 
 class DailyCycleAnchorDateTest {
 
