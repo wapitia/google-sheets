@@ -42,7 +42,9 @@ object DailySchedule {
 
   import DayOfWeek._
 
-  val DayOfWeekOffset = dayOfWeekOffset(Epoch.getDayOfWeek, 0)
+  val DayOfWeekOffset = dayOfWeekOffset(EpochDayOfWeek, DailyCycle(DaysPerWeek,0))
+
+//  val DayOfWeekOffset = dayOfWeekOffset(Epoch.getDayOfWeek, WeeklyCycle.WeeklySunday)
 
   def builder(dailyCycle: DailyCycle) = new Builder(dailyCycle, None, false)
 
@@ -73,10 +75,6 @@ object DailySchedule {
     builder(DailyCycle(daysInCycle, offset))
   }
 
-  /** Builder traverses weekly, starting at a particular day of the week. */
-  def multipleWeekly(weeksInCycle: Int, startDayOfWeek: DayOfWeek, withFirstWeekInCycleHavingDate: LocalDate): Builder =
-    builder(DailyCycle(DaysPerWeek * weeksInCycle, startCycleWeekOffset(withFirstWeekInCycleHavingDate, weeksInCycle, startDayOfWeek)))
-
   /**
    * The Daily Schedule builder starts with the number of days in the cycle and
    * an offset indicating the start day(s) of the cycle.
@@ -96,21 +94,24 @@ object DailySchedule {
 
     /** Builder traverses every day. Cycle Number of Days is 1, and offset is 0. */
 
-    def withCycleSheduleDayMapFunction(fCycleSheduleDayMapFunc: LocalDate => BitSet) = new Builder(dailyCycle, Some(fCycleSheduleDayMapFunc), false)
+    def withCycleSheduleDayMapFunction(fCycleSheduleDayMapFunc: LocalDate => BitSet) =
+      new Builder(dailyCycle, Some(fCycleSheduleDayMapFunc), false)
 
     /**
      * O-based list of days in the cycle, in whatever order, relative to the dayOffset
      * Each cycleDay must be ge 0 and lt nCycleDays
      */
-    def withCycleDays(cycleDays: Int*) = withCycleSheduleDayMapFunction(_ => cycleSheduleDayMap(cycleDays))
+    def withCycleDays(cycleDays: Int*) = withCycleSheduleDayMapFunction(_ => cycleScheduleDayMap(cycleDays))
 
     /** Set the cyclic day(s) of the week in which the schedule falls.
-     *  REQUIREMENT: The number of days in the cycle (parameter 'nCycleDays) must be a multiple of the DAYS_PER_WEEK, 7.
+     *  REQUIREMENT: The number of days in the cycle (parameter 'nCycleDays) must be a
+     *  multiple of the DAYS_PER_WEEK, 7.
      */
     def withWeekDayOffsetsInCycle( dows: (Int, DayOfWeek)*) = {
       require(dailyCycle.daysInCycle % DaysPerWeek == 0)
       withCycleDays(dows.map {
-          case (weekOffset, dayOfWeek) => weekOffset * DaysPerWeek + dayOfWeekOffset(dayOfWeek, dailyCycle.dayOffset)
+//          case (weekOffset, dayOfWeek) => weekOffset * DaysPerWeek + dayOfWeekOffset(dayOfWeek, dailyCycle.dayOffset)
+          case (weekOffset, dayOfWeek) => weekOffset * DaysPerWeek + dayOfWeekOffset(dayOfWeek, dailyCycle)
       }: _*)
     }
 
@@ -120,7 +121,8 @@ object DailySchedule {
      */
     def withWeekDaysInCycle(dows: DayOfWeek*) = {
       require(dailyCycle.daysInCycle % DaysPerWeek == 0)
-      val dayOffsets: Seq[Int] = dows.map(tup => dayOfWeekOffset(tup, dailyCycle.offset))
+      val dayOffsets: Seq[Int] = dows.map(tup => dayOfWeekOffset(tup, dailyCycle))
+//      val dayOffsets: Seq[Int] = dows.map(tup => dayOfWeekOffset(tup, dailyCycle.dayOffset))
       withCycleDays(dayOffsets: _*)
     }
 
@@ -142,16 +144,12 @@ object DailySchedule {
     }
   }
 
-  def dayOfWeekOffset(dow: DayOfWeek, cycleStartDayOffset: Int): Int = {
-    val res = dow.ordinal() - cycleStartDayOffset - DayOfWeekOffset + DaysPerWeek
+  def dayOfWeekOffset(dow: DayOfWeek, dailyCycle: DailyCycle): Int = {
+    require(dailyCycle.daysInCycle > 0)
+    require(dailyCycle.daysInCycle % DaysPerWeek == 0)
+//    val res = dow.ordinal() - dailyCycle.dayOffset - DayOfWeekOffset + DaysPerWeek
+    val res = dow.ordinal() - dailyCycle.dayOffset - DayOfWeekOffset + dailyCycle.daysInCycle
     res % DaysPerWeek
-  }
-
-  /** Calculate the day offset
-   *
-   */
-  def startCycleWeekOffset(withFirstWeekInCycleHavingDate: LocalDate, weeksInCycle: Int, startDayOfWeek: DayOfWeek): Int = {
-    ???
   }
 
   /** Compute the first day of the weekly cycle.
@@ -165,7 +163,8 @@ object DailySchedule {
     (startCycleWeekOffset * DaysPerWeek + DayOfWeekOffset + startDayOfWeek.getValue) % daysInCycle
   }
 
-  def cycleSheduleDayMap(cycleDays: Seq[Int]): BitSet = BitSet(cycleDays: _*)
+  def cycleScheduleDayMap(cycleDays: Seq[Int]): BitSet =
+    BitSet(cycleDays: _*)
 
   def everyDayMap(cycle: Int): BitSet = BitSet(0 to (cycle-1): _*)
 

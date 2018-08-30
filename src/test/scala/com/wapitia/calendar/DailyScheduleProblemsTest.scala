@@ -6,7 +6,7 @@ import org.junit.Assert._
 
 class DailyScheduleProblemsTest {
 
-  @Test  // @TODO
+  @Test
   def testWeeklyMondayScheduleStream() {
     val dsched: DailySchedule = DailySchedule.weeklyStartingMonday()
       .withWeekDaysInCycle(DayOfWeek.SATURDAY)
@@ -18,14 +18,19 @@ class DailyScheduleProblemsTest {
     }
   }
 
-  @Ignore @Test // TODO
-  def testBiWeeklySchedule() {
+  @Test
+  def testBiWeeklySchedule1() {
 
     val biwSched: DailySchedule = DailySchedule
       .multipleWeekly(2, DayOfWeek.SUNDAY, 0)
       .withWeekDayOffsetsInCycle((0,DayOfWeek.FRIDAY), (1,DayOfWeek.THURSDAY))
       .build()
-      ???
+
+    val dateStrm: Stream[LocalDate] = biwSched.onOrAfter("2018-08-29")
+    val expecteds = Stream[LocalDate]("2018-08-30","2018-09-07","2018-09-13","2018-09-21")
+    (expecteds zip dateStrm).foreach {
+      case (exp, act) => assertEquals(exp, act)
+    }
   }
 
 }
