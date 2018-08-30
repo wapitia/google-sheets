@@ -14,7 +14,7 @@ trait ScheduleDayOfMonth {
  *  No bound check is made, so is risky when dayOfMonth gt 28 as not all months have
  *  more than 28 days.
  *
- *  @param dayOfMonth should be gt 1 and less than the minumum days in each provided month.
+ *  @param dayOfMonth should be gt 1 and less than the minimum days in each provided month.
  */
 class FixedScheduleDayOfMonth(dayOfMonth: Int) extends ScheduleDayOfMonth {
 
@@ -33,4 +33,3 @@ object ScheduleDayOfMonth {
   val FirstDay = new FixedScheduleDayOfMonth(1)
   val LastDay = new BoundedFixedScheduleDayOfMonth(31)
 }
-

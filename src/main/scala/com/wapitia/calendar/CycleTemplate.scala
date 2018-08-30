@@ -5,7 +5,6 @@ class CycleTemplate(val cycleSize: Int, val offset: Int) {
 
   assert(cycleSize > 0)
   assert(offset >= 0 && offset < cycleSize)
-
 }
 
 object CycleTemplate {
