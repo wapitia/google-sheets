@@ -20,7 +20,7 @@ class DailyScheduleProblemsTest {
 //  }
 
   @Test
-  def testBiWeeklySchedule() {
+  def testBiWeeklySchedule1() {
 
     val biwSched: DailySchedule = DailySchedule
       .multipleWeekly(2, SUNDAY, 0)
@@ -29,7 +29,7 @@ class DailyScheduleProblemsTest {
     val dateStrm: Stream[LocalDate] = biwSched.onOrAfter("2018-03-01")
     val expecteds = Stream[LocalDate]("2018-03-03","2018-03-10","2018-03-17","2018-03-24")
     (expecteds zip dateStrm).foreach {
-//      case (exp, act) => assertEquals(exp, act)
+      //      case (exp, act) => assertEquals(exp, act)
       case (exp, act) => println(s"expected $exp, actual $act")
     }
   }

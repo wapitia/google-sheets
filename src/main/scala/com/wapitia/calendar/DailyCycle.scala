@@ -9,9 +9,7 @@ import java.time.YearMonth
  *  @param daysInCycle number of days in the cycle, must be a positive number.daysInCycle
  *  @param dayOffset offset of the start day in the cycle, must be non-negative and less than dayCycle.
  */
-case class DailyCycle(daysInCycle: Int, dayOffset: Int) extends CycleTemplate(daysInCycle, dayOffset) {
-
-}
+case class DailyCycle(daysInCycle: Int, dayOffset: Int) extends CycleTemplate(daysInCycle, dayOffset)
 
 object DailyCycle {
 
