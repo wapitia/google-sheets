@@ -6,9 +6,7 @@ import scala.collection.BitSet
 
 trait GenericScheduleBuilder {
 
-  /** Reset the size of this schedule, in number of days or number of months depending on its cycle configuration.
-   *  Note that GenericScheduleBuilders are made with a valid cycle size already, so this function should not
-   *  normally be used.
+  /** offset in days from normal cycle anchor date
    */
   def offset(offs: Int): GenericScheduleBuilder
 
@@ -16,19 +14,21 @@ trait GenericScheduleBuilder {
 }
 
 /** Build a schedule of any kind using a Generic overlay on the concrete schedule types. */
-// TODO
+// TODO WIP
 object ScheduleFactory {
 
   import CycleKind._
 
   def builder(cycleKind: Cycle): GenericScheduleBuilder = cycleKind.kind match {
     case DayLike => new GenericDailyScheduleBuilder(cycleKind, 0, None)
-    case MonthLike => new GenericMonthlyScheduleBuilder(cycleKind)
+    case MonthLike => new GenericMonthlyScheduleBuilder(cycleKind, 0, None, None)
   }
 
-  class GenericDailyScheduleBuilder(ck: Cycle, offset: Int, validfCycleSheduleDayMapOpt: Option[LocalDate => BitSet]) extends
-      DailySchedule.Builder[Schedule](DailyCycle(ck.cycleSize, offset), validfCycleSheduleDayMapOpt) with GenericScheduleBuilder
-  { sup: DailySchedule.Builder[Schedule] =>
+  class GenericDailyScheduleBuilder(ck: Cycle, offset: Int, validfCycleSheduleDayMapOpt: Option[LocalDate => BitSet])
+      extends DailySchedule.Builder[Schedule](DailyCycle(ck.cycleSize, offset), validfCycleSheduleDayMapOpt)
+      with GenericScheduleBuilder
+  {
+    sup: DailySchedule.Builder[Schedule] =>
 
     override def offset(offs: Int): GenericScheduleBuilder = {
       new GenericDailyScheduleBuilder(ck, offs, validfCycleSheduleDayMapOpt)
@@ -37,11 +37,16 @@ object ScheduleFactory {
     override def build(): Schedule = sup.build()
   }
 
-  class GenericMonthlyScheduleBuilder(ck: Cycle) extends
-      MonthlySchedule.Builder[Schedule](None, None, MonthlyCycle.builder().cycleSize(ck.cycleSize).offset(0)) with GenericScheduleBuilder
-  { sup: MonthlySchedule.Builder[Schedule] =>
+  class GenericMonthlyScheduleBuilder(ck: Cycle, offset: Int, dayfuncOpt: Option[ScheduleDayOfMonth],
+      workingSchedOpt: Option[WorkingSchedule]
+)
+      extends MonthlySchedule.Builder[Schedule](dayfuncOpt, workingSchedOpt, MonthlyCycle.builder().cycleSize(ck.cycleSize).offset(offset))
+      with GenericScheduleBuilder
+  {
+    sup: MonthlySchedule.Builder[Schedule] =>
+
     override def offset(offs: Int): GenericScheduleBuilder =
-      ???
+      new GenericMonthlyScheduleBuilder(ck, offs, dayfuncOpt, workingSchedOpt)
 
     override def build(): Schedule = sup.build()
   }
