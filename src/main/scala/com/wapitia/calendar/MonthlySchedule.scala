@@ -49,33 +49,7 @@ extends Schedule
 
 object MonthlySchedule {
 
-  def builder() = new Builder[MonthlySchedule](None, None,  MonthlyCycle.builder())
-
-  class Builder[A <: Schedule](
-      dayfuncOpt: Option[ScheduleDayOfMonth],
-      workingSchedOpt: Option[WorkingSchedule],
-      monCycleBuilder: MonthlyCycle.Builder) {
-
-    def monthsInCycle(nMonths: Int): Builder[A] = new Builder[A](dayfuncOpt, workingSchedOpt, monCycleBuilder.cycleSize(nMonths))
-
-    def monthOffset(nOffset: Int): Builder[A] = new Builder[A](dayfuncOpt, workingSchedOpt, monCycleBuilder.offset(nOffset))
-
-    def monthlyCycle(monCycle: MonthlyCycle): Builder[A] = new Builder[A](dayfuncOpt, workingSchedOpt, monCycleBuilder.set(monCycle))
-
-    def dayOfMonth(day: Int): Builder[A] = dayOfMonth(new BoundedFixedScheduleDayOfMonth(day))
-
-    def dayOfMonth(dayOfMonthAdj: ScheduleDayOfMonth): Builder[A] = new Builder[A](Some(dayOfMonthAdj), workingSchedOpt, monCycleBuilder)
-
-    def workingSched(sched: WorkingSchedule): Builder[A]  = new Builder[A](dayfuncOpt, Some(sched), monCycleBuilder)
-
-    def build(): A = {
-      val schedDayOfMonth: ScheduleDayOfMonth = dayfuncOpt.getOrElse(ScheduleDayOfMonth.FirstDay)
-      val workingSched: WorkingSchedule = workingSchedOpt.getOrElse(WorkingSchedule.any)
-      val monthlyCycle: MonthlyCycle = monCycleBuilder.build()
-      new MonthlySchedule(schedDayOfMonth, workingSched, monthlyCycle).asInstanceOf[A]
-    }
-
-  }
+  def builder() = new MonthlyScheduleBuilder[MonthlySchedule](None, None,  MonthlyCycle.builder())
 
   /** Monthly on the given day with no adjustment */
   def monthly(day1: Int): MonthlySchedule =
@@ -113,5 +87,31 @@ object MonthlySchedule {
   def annually(dayOfYear: Int): Schedule = ???  // TODO
 
   def annually(sampleDate: LocalDate): Schedule = ???  // TODO
+
+}
+
+class MonthlyScheduleBuilder[A <: Schedule](
+    dayfuncOpt: Option[ScheduleDayOfMonth],
+    workingSchedOpt: Option[WorkingSchedule],
+    monCycleBuilder: MonthlyCycle.Builder) {
+
+  def monthsInCycle(nMonths: Int): MonthlyScheduleBuilder[A] = new MonthlyScheduleBuilder[A](dayfuncOpt, workingSchedOpt, monCycleBuilder.cycleSize(nMonths))
+
+  def monthOffset(nOffset: Int): MonthlyScheduleBuilder[A] = new MonthlyScheduleBuilder[A](dayfuncOpt, workingSchedOpt, monCycleBuilder.offset(nOffset))
+
+  def monthlyCycle(monCycle: MonthlyCycle): MonthlyScheduleBuilder[A] = new MonthlyScheduleBuilder[A](dayfuncOpt, workingSchedOpt, monCycleBuilder.set(monCycle))
+
+  def dayOfMonth(day: Int): MonthlyScheduleBuilder[A] = dayOfMonth(new BoundedFixedScheduleDayOfMonth(day))
+
+  def dayOfMonth(dayOfMonthAdj: ScheduleDayOfMonth): MonthlyScheduleBuilder[A] = new MonthlyScheduleBuilder[A](Some(dayOfMonthAdj), workingSchedOpt, monCycleBuilder)
+
+  def workingSched(sched: WorkingSchedule): MonthlyScheduleBuilder[A]  = new MonthlyScheduleBuilder[A](dayfuncOpt, Some(sched), monCycleBuilder)
+
+  def build(): A = {
+    val schedDayOfMonth: ScheduleDayOfMonth = dayfuncOpt.getOrElse(ScheduleDayOfMonth.FirstDay)
+    val workingSched: WorkingSchedule = workingSchedOpt.getOrElse(WorkingSchedule.any)
+    val monthlyCycle: MonthlyCycle = monCycleBuilder.build()
+    new MonthlySchedule(schedDayOfMonth, workingSched, monthlyCycle).asInstanceOf[A]
+  }
 
 }
