@@ -19,33 +19,37 @@ object ScheduleFactory {
 
   import CycleKind._
 
-  def builder(cycleKind: Cycle): GenericScheduleBuilder = cycleKind.kind match {
-    case DayLike => new GenericDailyScheduleBuilder(cycleKind, 0, None)
-    case MonthLike => new GenericMonthlyScheduleBuilder(cycleKind, 0, None, None)
+  def builder(cycle: Cycle): GenericScheduleBuilder = cycle.kind match {
+    case DayLike => cycleDays(cycle.cycleSize)
+    case MonthLike => cycleMonths(cycle.cycleSize)
   }
+
+  def cycleDays(nDays: Int): GenericDailyScheduleBuilder = new GenericDailyScheduleBuilder(nDays, 0, None)
+
+  def cycleMonths(nMonths: Int): GenericMonthlyScheduleBuilder = new GenericMonthlyScheduleBuilder(nMonths, 0, None, None)
 
 }
 
-class GenericDailyScheduleBuilder(ck: Cycle, offset: Int, validfCycleSheduleDayMapOpt: Option[LocalDate => BitSet])
-    extends DailyScheduleBuilder[Schedule](DailyCycle(ck.cycleSize, offset), validfCycleSheduleDayMapOpt)
-    with GenericScheduleBuilder
+class GenericDailyScheduleBuilder(cycleSize: Int, offset: Int, validfCycleSheduleDayMapOpt: Option[LocalDate => BitSet])
+  extends DailyScheduleBuilder[Schedule](DailyCycle(cycleSize, offset), validfCycleSheduleDayMapOpt)
+  with GenericScheduleBuilder
 {
 
   override def offset(offs: Int): GenericScheduleBuilder = {
-    new GenericDailyScheduleBuilder(ck, offs, validfCycleSheduleDayMapOpt)
+    new GenericDailyScheduleBuilder(cycleSize, offs, validfCycleSheduleDayMapOpt)
   }
 
   override def build(): Schedule = super[DailyScheduleBuilder].build()
 }
 
-class GenericMonthlyScheduleBuilder(ck: Cycle, offset: Int, dayfuncOpt: Option[ScheduleDayOfMonth],
+class GenericMonthlyScheduleBuilder(cycleSize: Int, offset: Int, dayfuncOpt: Option[ScheduleDayOfMonth],
     workingSchedOpt: Option[WorkingSchedule])
-    extends MonthlyScheduleBuilder[Schedule](dayfuncOpt, workingSchedOpt, MonthlyCycle.builder().cycleSize(ck.cycleSize).offset(offset))
-    with GenericScheduleBuilder
+  extends MonthlyScheduleBuilder[Schedule](dayfuncOpt, workingSchedOpt, MonthlyCycle.builder().cycleSize(cycleSize).offset(offset))
+  with GenericScheduleBuilder
 {
 
   override def offset(offs: Int): GenericScheduleBuilder =
-    new GenericMonthlyScheduleBuilder(ck, offs, dayfuncOpt, workingSchedOpt)
+    new GenericMonthlyScheduleBuilder(cycleSize, offs, dayfuncOpt, workingSchedOpt)
 
   override def build(): Schedule = super[MonthlyScheduleBuilder].build()
 }
