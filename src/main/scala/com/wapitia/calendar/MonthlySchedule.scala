@@ -49,30 +49,30 @@ extends Schedule
 
 object MonthlySchedule {
 
-  def builder() = new Builder(None, None,  MonthlyCycle.builder())
+  def builder() = new Builder[MonthlySchedule](None, None,  MonthlyCycle.builder())
 
-  class Builder(
+  class Builder[A <: Schedule](
       dayfuncOpt: Option[ScheduleDayOfMonth],
       workingSchedOpt: Option[WorkingSchedule],
       monCycleBuilder: MonthlyCycle.Builder) {
 
-    def monthsInCycle(nMonths: Int): Builder = new Builder(dayfuncOpt, workingSchedOpt, monCycleBuilder.cycleSize(nMonths))
+    def monthsInCycle(nMonths: Int): Builder[A] = new Builder[A](dayfuncOpt, workingSchedOpt, monCycleBuilder.cycleSize(nMonths))
 
-    def monthOffset(nOffset: Int): Builder = new Builder(dayfuncOpt, workingSchedOpt, monCycleBuilder.offset(nOffset))
+    def monthOffset(nOffset: Int): Builder[A] = new Builder[A](dayfuncOpt, workingSchedOpt, monCycleBuilder.offset(nOffset))
 
-    def monthlyCycle(monCycle: MonthlyCycle): Builder = new Builder(dayfuncOpt, workingSchedOpt, monCycleBuilder.set(monCycle))
+    def monthlyCycle(monCycle: MonthlyCycle): Builder[A] = new Builder[A](dayfuncOpt, workingSchedOpt, monCycleBuilder.set(monCycle))
 
-    def dayOfMonth(day: Int): Builder = dayOfMonth(new BoundedFixedScheduleDayOfMonth(day))
+    def dayOfMonth(day: Int): Builder[A] = dayOfMonth(new BoundedFixedScheduleDayOfMonth(day))
 
-    def dayOfMonth(dayOfMonthAdj: ScheduleDayOfMonth): Builder = new Builder(Some(dayOfMonthAdj), workingSchedOpt, monCycleBuilder)
+    def dayOfMonth(dayOfMonthAdj: ScheduleDayOfMonth): Builder[A] = new Builder[A](Some(dayOfMonthAdj), workingSchedOpt, monCycleBuilder)
 
-    def workingSched(sched: WorkingSchedule): Builder  = new Builder(dayfuncOpt, Some(sched), monCycleBuilder)
+    def workingSched(sched: WorkingSchedule): Builder[A]  = new Builder[A](dayfuncOpt, Some(sched), monCycleBuilder)
 
-    def build(): MonthlySchedule = {
+    def build(): A = {
       val schedDayOfMonth: ScheduleDayOfMonth = dayfuncOpt.getOrElse(ScheduleDayOfMonth.FirstDay)
       val workingSched: WorkingSchedule = workingSchedOpt.getOrElse(WorkingSchedule.any)
       val monthlyCycle: MonthlyCycle = monCycleBuilder.build()
-      new MonthlySchedule(schedDayOfMonth, workingSched, monthlyCycle)
+      new MonthlySchedule(schedDayOfMonth, workingSched, monthlyCycle).asInstanceOf[A]
     }
 
   }
