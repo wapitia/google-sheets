@@ -27,10 +27,9 @@ class DailyScheduleProblemsTest {
       .withWeekDayOffsetsInCycle((0,FRIDAY), (1,THURSDAY))
       .build()
     val dateStrm: Stream[LocalDate] = biwSched.onOrAfter("2018-03-01")
-    val expecteds = Stream[LocalDate]("2018-03-03","2018-03-10","2018-03-17","2018-03-24")
+    val expecteds = Stream[LocalDate]("2018-03-01", "2018-03-09", "2018-03-15", "2018-03-23")
     (expecteds zip dateStrm).foreach {
-      //      case (exp, act) => assertEquals(exp, act)
-      case (exp, act) => println(s"expected $exp, actual $act")
+      case (exp, act) => assertEquals(exp, act)
     }
   }
 

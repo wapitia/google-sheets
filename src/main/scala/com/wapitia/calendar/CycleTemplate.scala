@@ -1,43 +1,42 @@
-package com.wapitia.calendar
+package com.wapitia
+package calendar
 
 /** Commonality between DailyCycle and MonthlyCycle encapsulated here */
 class CycleTemplate(val cycleSize: Int, val offset: Int) {
 
-  assert(cycleSize > 0)
-  assert(offset >= 0 && offset < cycleSize)
+  require(cycleSize > 0)
+  require(offset >= 0 && offset < cycleSize)
 }
 
-object CycleTemplate {
+/** Abstract Builder accumulates each CycleTemplate parameter individually */
+abstract class CycleBuilder[A <: CycleTemplate,B <: CycleBuilder[A,B]](
+    cycleSizeOpt: Option[Int], offsetOpt: Option[Int], cycleSizeDefault: => Int)
+{
 
-  /** Builder class adding convenience methods to accumulate each parameter individually or together. */
-  abstract class Builder[A <: CycleTemplate,B <: Builder[A,B]](
-      cycleSizeOpt: Option[Int], offsetOpt: Option[Int], cycleSizeDefault: => Int)
-  {
+  // abstract
+  def builder(cycleSizeOpt: Option[Int], offsetOpt: Option[Int], cycleSizeDefault: => Int): B
 
-    def builderConstructor(cycleSizeOpt: Option[Int], offsetOpt: Option[Int], cycleSizeDefault: => Int): B
+  // abstract
+  def make(cycleSize: Int, offset: Int): A
 
-    def objConstructor(cycleSize: Int, offset: Int): A
+  /** set the months-in-cycle component.
+   *  Warning this will reduce the offset if previously set be one less than this cycleSize.
+   *  Otherwise sets offset to 0.
+   */
+  def cycleSize(size: Int): B = builder(Some(size), offsetOpt, cycleSizeDefault)
 
-    /** set the months-in-cycle component.
-     *  Warning this will reduce the offset if previously set be one less than this cycleSize.
-     *  Otherwise sets offset to 0.
-     */
-    def monthsInCycle(cycleSize: Int): B = builderConstructor(Some(cycleSize), offsetOpt, cycleSizeDefault)
+  /** Set the month offset component.
+   *  Warning this will set the months-in-cycle to be one more than this offset if not previously set
+   *  or if currently set less than or equal to this offset.
+   */
+  def offset(offset: Int): B = builder(cycleSizeOpt, Some(offset), cycleSizeDefault)
 
-    /** Set the month offset component.
-     *  Warning this will set the months-in-cycle to be one more than this offset if not previously set
-     *  or if currently set less than or equal to this offset.
-     */
-    def offset(offset: Int): B = builderConstructor(cycleSizeOpt, Some(offset), cycleSizeDefault)
+  def set(cycle: A): B = builder(Some(cycle.cycleSize), Some(cycle.offset), cycleSizeDefault)
 
-    def set(obj: CycleTemplate): B = builderConstructor(Some(obj.cycleSize), Some(obj.offset), cycleSizeDefault)
-
-    /** Return the accumulated object, or `Monthly` by default. */
-    def build(): A = {
-      val cycleSize: Int = cycleSizeOpt.getOrElse(cycleSizeDefault)
-      val offset: Int = offsetOpt.getOrElse(0)
-      objConstructor(cycleSize,offset)
-    }
+  /** Create and return a Cycle instance */
+  def build(): A = {
+    val cycleSize: Int = cycleSizeOpt.getOrElse(cycleSizeDefault)
+    val offset: Int = offsetOpt.getOrElse(0)
+    make(cycleSize,offset)
   }
-
 }
