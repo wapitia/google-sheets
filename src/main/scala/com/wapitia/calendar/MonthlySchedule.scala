@@ -56,7 +56,7 @@ object MonthlySchedule {
       workingSchedOpt: Option[WorkingSchedule],
       monCycleBuilder: MonthlyCycle.Builder) {
 
-    def monthsInCycle(nMonths: Int): Builder = new Builder(dayfuncOpt, workingSchedOpt, monCycleBuilder.monthsInCycle(nMonths))
+    def monthsInCycle(nMonths: Int): Builder = new Builder(dayfuncOpt, workingSchedOpt, monCycleBuilder.cycleSize(nMonths))
 
     def monthOffset(nOffset: Int): Builder = new Builder(dayfuncOpt, workingSchedOpt, monCycleBuilder.offset(nOffset))
 

@@ -24,7 +24,7 @@ class SpreadsheetTest {
     val mrsh = new AcctMockMarshaller
     val rdr = SimpleSheetReader[AcctMock,AcctMock.Builder](mrsh)
     val rows: Seq[AcctMock] = rdr.read(sampleSheet)
-    rows.foreach(r => println(r))
+    rows.foreach(println)
     assertEquals(expectedSheet, rows.map(_.toString()))
   }
 

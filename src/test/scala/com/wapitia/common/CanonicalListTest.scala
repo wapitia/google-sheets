@@ -1,7 +1,7 @@
 package com.wapitia
 package common
 
-import com.wapitia.calendar.CycleKind
+import com.wapitia.calendar.Cycle
 import org.junit.Test
 import org.junit.Assert._
 
