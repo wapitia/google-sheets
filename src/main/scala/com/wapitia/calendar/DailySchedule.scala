@@ -69,14 +69,15 @@ object DailySchedule {
     builder(dailyCycle)
   }
 
+  /** Create a BitSet where days in the cycle are explicitly given in a 0-based sequence. */
   def cycleScheduleDayMap(cycleDays: Seq[Int]): BitSet =
     BitSet(cycleDays: _*)
 
-  /** A BitSet where every day in the cycle (0.. cycleSize-1) is set */
-  def everyDayBitMap(cycle: Int): BitSet = BitSet(0 to (cycle-1): _*)
+  /** A BitSet where every day in the cycle (0.. nDays-1) is set */
+  def everyDayBitMap(nDays: Int): BitSet = BitSet(0 to (nDays-1): _*)
 
   /** A BitSet where only the single day as given by the offset is set */
-  def offsetDayBitMap(offset: Int): BitSet = BitSet(offset)
+  def offsetDayBitMap(dayOffset: Int): BitSet = BitSet(dayOffset)
 
   /** A `BitSet` where only the first day (0) set.
    *  This is the `DailyScheduleBuilder`'s default for any cycle start date when one isn't defined.
