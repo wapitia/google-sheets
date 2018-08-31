@@ -2,7 +2,7 @@ package com.wapitia
 package financial
 
 import java.time.LocalDate
-import com.wapitia.calendar.CycleKind
+import com.wapitia.calendar.Cycle
 
 /**
  * A transaction template defines a transfer of cash from a source account
@@ -16,7 +16,7 @@ case class TransactionTemplate(
     item: String,
     nextTrans: LocalDate,
     amount: BigDecimal,
-    cycle: CycleKind,
+    cycle: Cycle,
     cycleRefDate: LocalDate,
     maxOpt: Option[BigDecimal],
     lastPmtDateOpt: Option[LocalDate],
@@ -61,7 +61,7 @@ object TransactionTemplate {
       itemOpt: Option[String],
       nextTransOpt: Option[LocalDate],
       amountOpt: Option[BigDecimal],
-      cycleOpt: Option[CycleKind],
+      cycleOpt: Option[Cycle],
       cycleRefDateOpt: Option[LocalDate],
       maxOpt: Option[BigDecimal],
       lastPmtDateOpt: Option[LocalDate],
@@ -88,7 +88,7 @@ object TransactionTemplate {
         variableOpt, sourceOpt, targetOpt, pmtMethodOpt, catNDaysOpt,
         catNMonthsOpt, ensurePositive)
 
-    def cycleKind(cycle: CycleKind) = new Builder(itemOpt, nextTransOpt,
+    def cycleKind(cycle: Cycle) = new Builder(itemOpt, nextTransOpt,
         amountOpt, Some(cycle), cycleRefDateOpt, maxOpt, lastPmtDateOpt,
         variableOpt, sourceOpt, targetOpt, pmtMethodOpt, catNDaysOpt,
         catNMonthsOpt, ensurePositive)

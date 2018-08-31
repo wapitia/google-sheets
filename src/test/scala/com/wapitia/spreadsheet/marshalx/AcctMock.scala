@@ -1,21 +1,21 @@
 package com.wapitia.spreadsheet.marshalx
 
 import java.time.LocalDate
-import com.wapitia.calendar.CycleKind
+import com.wapitia.calendar.Cycle
 
-case class AcctMock(acctName: String, cycle: CycleKind, date: LocalDate, age: Int, incomeOpt: Option[BigDecimal])
+case class AcctMock(acctName: String, cycle: Cycle, date: LocalDate, age: Int, incomeOpt: Option[BigDecimal])
 
 object AcctMock {
 
   def builder() = new Builder(None, None, None, None, None)
 
-  class Builder(acctNameOpt: Option[String], cycleOpt: Option[CycleKind],
+  class Builder(acctNameOpt: Option[String], cycleOpt: Option[Cycle],
       dateOpt: Option[LocalDate], ageOpt: Option[Int], incomeOpt: Option[BigDecimal]) {
 
     def acctName(acctName: String) =
       new Builder(Some(acctName), cycleOpt, dateOpt, ageOpt, incomeOpt)
 
-    def cycle(cycle: CycleKind) =
+    def cycle(cycle: Cycle) =
       new Builder(acctNameOpt, Some(cycle), dateOpt, ageOpt, incomeOpt)
 
     def date(date: LocalDate) =

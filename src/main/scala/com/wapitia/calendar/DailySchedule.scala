@@ -41,7 +41,7 @@ object DailySchedule {
 
   import DayOfWeek._
 
-  def builder(dailyCycle: DailyCycle) = new Builder(dailyCycle, None, false)
+  def builder(dailyCycle: DailyCycle) = new Builder(dailyCycle, None)
 
   /** Every day is a day of the schedule */
   def daily() = builder(DailyCycle.Daily)
@@ -82,12 +82,11 @@ object DailySchedule {
    */
   class Builder(
       dailyCycle: DailyCycle,
-      validfCycleSheduleDayMapOpt: Option[LocalDate => BitSet],
-      flagAllfCycleSheduleDayMap: Boolean)
+      validfCycleSheduleDayMapOpt: Option[LocalDate => BitSet])
   {
     /** Builder traverses every day. Cycle Number of Days is 1, and offset is 0. */
     def withCycleSheduleDayMapFunction(fCycleSheduleDayMapFunc: LocalDate => BitSet): Builder =
-      new Builder(dailyCycle, Some(fCycleSheduleDayMapFunc), false)
+      new Builder(dailyCycle, Some(fCycleSheduleDayMapFunc))
 
     /**
      * O-based list of days in the cycle, in whatever order, relative to the dayOffset
@@ -123,16 +122,10 @@ object DailySchedule {
     def weekends(): Builder =
       withWeekDaysInCycle(SATURDAY, SUNDAY)
 
-    def withAllfCycleSheduleDayMap(): Builder =
-      new Builder(dailyCycle, None, true)
-
     def build(): DailySchedule = {
       val modDayOffset = dailyCycle.dayOffset % dailyCycle.daysInCycle
       val validfCycleSheduleDayMap =
-        if (flagAllfCycleSheduleDayMap)
-          (ld: LocalDate) => everyDayMap(dailyCycle.daysInCycle)
-        else
-          validfCycleSheduleDayMapOpt.getOrElse((ld: LocalDate) => everyDayMap(dailyCycle.daysInCycle))
+        validfCycleSheduleDayMapOpt.getOrElse((ld: LocalDate) => everyDayMap(dailyCycle.daysInCycle))
 
       new DailySchedule(validfCycleSheduleDayMap, dailyCycle)
     }
