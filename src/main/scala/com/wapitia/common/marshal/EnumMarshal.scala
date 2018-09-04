@@ -53,14 +53,14 @@ trait EnumMarshallerTemplate {
   import com.wapitia.common.marshal.UnmarshalException
 
   type EnumType <: EValue[EnumType]
-  def enumValueMap: Map[String,EnumType]
+  def enumValueNamed: Map[String,EnumType]
 
   type MarshallerType = EnumMarshal[EnumType]
   def collectionName = scala.reflect.runtime.universe.weakTypeTag[EnumType].tpe.toString
 
   val Into = apply()
 
-  val onMissingValue = (value: String) =>
+  val onMissingValue: String => EnumType = (value: String) =>
     throw new UnmarshalException(s"Missing or unrecognized $collectionName enum having name: `$value`")
 
   /** Make a strict new `Marshaller`, case sensitive which throws
@@ -69,7 +69,7 @@ trait EnumMarshallerTemplate {
   def apply(): MarshallerType = apply(onMissingValue, true)
 
   def apply(defaultCycle: String => EnumType, caseSensitive: Boolean): MarshallerType =
-    new EnumMarshal[EnumType](enumValueMap, defaultCycle, caseSensitive)
+    new EnumMarshal[EnumType](enumValueNamed, defaultCycle, caseSensitive)
 }
 
 /** EnumMarshaller helper functions */
