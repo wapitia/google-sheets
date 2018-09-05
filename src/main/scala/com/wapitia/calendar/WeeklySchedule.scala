@@ -14,11 +14,26 @@ object WeeklySchedule {
    *  interface which sets the week start day as SUNDAY, which shouldn't matter,
    *  and sets the cycle offset derived from the initial date's day of week.
    */
-  def scheduleStartDate(initialDate: LocalDate): Stream[LocalDate] =
+  def weeklyStarting(initialDate: LocalDate): Stream[LocalDate] =
     multipleWeekly(1, SUNDAY, 0)
     .withWeekDaysInSchedule(initialDate.getDayOfWeek)
     .build()
     .starting(initialDate)
+
+  /** Produce a weekly stream starting from the given initial date.
+   *  This is a thin helper on top of the DailySchedule builder's
+   *  interface which sets the week start day as SUNDAY, which shouldn't matter,
+   *  and sets the cycle offset derived from the initial date's day of week.
+   */
+  def biweeklyStarting(initialDate: LocalDate): Stream[LocalDate] =
+    multipleWeekly(2, SUNDAY, 0)
+    .withWeekDayOffsetsInSchedule((biweeklyOffset(initialDate), initialDate.getDayOfWeek))
+    .build()
+    .starting(initialDate)
+
+  def biweeklyOffset(initialDate: LocalDate): Int = multiWeeklyOffset(2, initialDate)
+
+  def multiWeeklyOffset(numWeeks: Int, initialDate: LocalDate): Int = ???
 
   /** Builder traverses weekly with the week starting on Sunday.
    *

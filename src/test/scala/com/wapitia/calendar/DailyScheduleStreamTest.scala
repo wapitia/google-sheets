@@ -24,7 +24,7 @@ class DailyScheduleStreamTest {
 
   @Test
   def testWeeklyQuickScheduleStream() {
-    val dateStrm: Stream[LocalDate] = WeeklySchedule.scheduleStartDate("2018-03-02")
+    val dateStrm: Stream[LocalDate] = WeeklySchedule.weeklyStarting("2018-03-02")
     val expecteds = Stream[LocalDate]("2018-03-02","2018-03-09","2018-03-16","2018-03-23")
     (expecteds zip dateStrm).foreach {
       case (exp, act) => assertEquals(exp, act)
