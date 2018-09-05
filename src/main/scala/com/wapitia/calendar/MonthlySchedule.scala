@@ -29,7 +29,10 @@ extends Schedule
     monDate.withDayOfMonth(dom.dayOfMonthOf(monDate))
   }
 
-  override def onOrAfter(onOrAfterDate: LocalDate): Stream[LocalDate] = {
+  def cycleAnchorDate(onOrAfterDate: LocalDate): LocalDate = ???
+
+
+  override def starting(onOrAfterDate: LocalDate): Stream[LocalDate] = {
 
     def assureOnOrAfter(candidateDate: LocalDate): LocalDate =
       if (candidateDate.isBefore(onOrAfterDate))
@@ -99,7 +102,7 @@ class MonthlyScheduleBuilder[A <: Schedule](
 
   def monthOffset(nOffset: Int): MonthlyScheduleBuilder[A] = new MonthlyScheduleBuilder[A](dayfuncOpt, workingSchedOpt, monCycleBuilder.offset(nOffset))
 
-  def monthlyCycle(monCycle: MonthlyCycle): MonthlyScheduleBuilder[A] = new MonthlyScheduleBuilder[A](dayfuncOpt, workingSchedOpt, monCycleBuilder.set(monCycle))
+  def monthlyCycle(monCycle: MonthlyCycle): MonthlyScheduleBuilder[A] = new MonthlyScheduleBuilder[A](dayfuncOpt, workingSchedOpt, monCycleBuilder.cycle(monCycle))
 
   def dayOfMonth(day: Int): MonthlyScheduleBuilder[A] = dayOfMonth(new BoundedFixedScheduleDayOfMonth(day))
 

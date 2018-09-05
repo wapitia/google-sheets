@@ -11,11 +11,15 @@ import java.time.LocalDate
  */
 trait Schedule {
 
-  def onOrAfter(date: LocalDate): Stream[LocalDate]
+  def starting(date: LocalDate): Stream[LocalDate]
+
+  def cycleAnchorDate(onOrAfterDate: LocalDate): LocalDate
+
 }
 
 object Schedule {
 
   /** Monthly on the given day with no adjustment */
   def monthly(day1: Int): Schedule = MonthlySchedule.monthly(day1)
+
 }

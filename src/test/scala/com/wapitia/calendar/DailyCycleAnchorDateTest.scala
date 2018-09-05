@@ -10,8 +10,8 @@ class DailyCycleAnchorDateTest {
 
   @Test
   def testDailyScheduleWeeklySunday() {
-    val sundaySched: DailySchedule = DailySchedule.weeklyStartingSunday()
-      .withWeekDaysInCycle(DayOfWeek.FRIDAY)
+    val sundaySched: DailySchedule = WeeklySchedule.weeklyStartingSunday()
+      .withWeekDaysInSchedule(DayOfWeek.FRIDAY)
       .build()
 
     List[(LocalDate, LocalDate)](
@@ -34,8 +34,8 @@ class DailyCycleAnchorDateTest {
 
   @Test
   def testDailyScheduleWeeklyMonday() {
-    val mondaySched: DailySchedule = DailySchedule.weeklyStartingMonday()
-      .withWeekDaysInCycle(DayOfWeek.FRIDAY)
+    val mondaySched: Schedule = WeeklySchedule.weeklyStartingMonday()
+      .withWeekDaysInSchedule(DayOfWeek.FRIDAY)
       .build()
 
     List[(LocalDate, LocalDate)](
@@ -60,7 +60,7 @@ class DailyCycleAnchorDateTest {
   @Test
   def testBiWeeklySchedule() {
 
-    val biwSched: DailySchedule = DailySchedule
+    val biwSched: DailySchedule = WeeklySchedule
       .multipleWeekly(2, DayOfWeek.SUNDAY, 0)
       // .withWeekDayOffsetsInCycle((0,DayOfWeek.FRIDAY), (1,DayOfWeek.THURSDAY))
       .build()
@@ -78,7 +78,7 @@ class DailyCycleAnchorDateTest {
 
   }
 
-  def assertAnchorDatesEqual(expCandPair: (LocalDate, LocalDate), dailySched: DailySchedule) {
+  def assertAnchorDatesEqual(expCandPair: (LocalDate, LocalDate), dailySched: Schedule) {
     expCandPair match {
       case (exp, candidate) =>
         val d1: LocalDate = dailySched.cycleAnchorDate(candidate)

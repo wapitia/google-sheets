@@ -31,18 +31,23 @@ case class DailyCycle(daysInCycle: Int, dayOffset: Int) extends CycleTemplate(da
 
 object DailyCycle {
 
+  /** A tight daily cycle, every day is a scheduled day */
   val Daily: DailyCycle = DailyCycle(1, 0)
 
-  /** The number of days between THURSDAY and a full week, which is 4.
-   *  MONDAY is the first item of the `DayOfWeek` enumeration (day 0).
-   *  THURSDAY is the day of week of "1970-01-01" which is the Epoch Day (day 0).
+  /** The number of days between Thursday and the next Monday, which is 4.
+   *  Monday is the first item of the `DayOfWeek` enumeration (day 0).
+   *  Thursday is the day of week of "1970-01-01" which is the Epoch Day (day 0).
    *  This offset is used to adjust the weekly modulo calculations in the
    *  calendar package, which borrows both values from the underlying date
    *  representation `java.time`.
    */
   val DayOfWeekOffset = DaysPerWeek - EpochDayOfWeek.getValue
 
-  def defaultDayCycle(): Int = throw new RuntimeException("Day cycle size not defined")
+  /** The number of days in a cycle to assume when the value has not yet been defined.
+   *  This function is passed to DailyCycle.Builder as its default and assumed to be overwritten
+   *  via the builder's `sizeDefault` function.
+   */
+  def defaultNumDaysInCycle(): Int = throw new RuntimeException("Day cycle size not defined")
 
   def multipleWeekly(weeksInCycle: Int, startDayOfWeek: DayOfWeek, startCycleWeekOffset: Int): DailyCycle = {
     val daysInCycle = DaysPerWeek * weeksInCycle
@@ -51,7 +56,7 @@ object DailyCycle {
       .build()
   }
 
-  def builder(): Builder = new Builder(None, None, defaultDayCycle)
+  def builder(): Builder = new Builder(None, None, defaultNumDaysInCycle)
 
   /** Builder class adding convenience methods to accumulate each parameter individually or together. */
   class Builder(dayCycleOpt: Option[Int], dayOffsetOpt: Option[Int], dayCycleDefault: => Int)
@@ -62,6 +67,7 @@ object DailyCycle {
 
     override def make(cycleSize: Int, offset: Int): DailyCycle =
       DailyCycle(cycleSize, offset)
+
   }
 
 }

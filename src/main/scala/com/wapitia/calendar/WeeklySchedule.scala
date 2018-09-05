@@ -1,7 +1,7 @@
 package com.wapitia
 package calendar
 
-import java.time.LocalDate
+import java.time.{DayOfWeek, LocalDate}
 import java.time.DayOfWeek._
 
 /** Helper functions facilitating DailySchedule's interface.
@@ -14,11 +14,57 @@ object WeeklySchedule {
    *  interface which sets the week start day as SUNDAY, which shouldn't matter,
    *  and sets the cycle offset derived from the initial date's day of week.
    */
-  def from(initialDate: LocalDate): Stream[LocalDate] =
-    DailySchedule
-      .multipleWeekly(1, SUNDAY, 0)
-      .withWeekDaysInCycle(initialDate.getDayOfWeek)
-      .build()
-      .onOrAfter(initialDate)
+  def scheduleStartDate(initialDate: LocalDate): Stream[LocalDate] =
+    multipleWeekly(1, SUNDAY, 0)
+    .withWeekDaysInSchedule(initialDate.getDayOfWeek)
+    .build()
+    .starting(initialDate)
+
+  /** Builder traverses weekly with the week starting on Sunday.
+   *
+   *  @usage
+   *  Create a weekly schedule where each Friday is a day in the schedule,
+   *  and where the week starts on a Sunday. In this case, the starting day of the week
+   *  does not matter.
+   *  {{{
+   *    val dsched: DailySchedule = DailySchedule.weeklyStartingSunday()
+   *      .withWeekDaysInCycle(FRIDAY)
+   *      .build()
+   *  }}}
+   *
+   */
+  def weeklyStartingSunday(): DailyScheduleBuilder[DailySchedule] = weekly(SUNDAY)
+
+  /** Builder traverses weekly with the week starting on Monday.
+   *
+   *  @usage
+   *  Create a weekly schedule where each Tuesday is a day in the schedule,
+   *  and where the week starts on a Monday. In this case, the starting day of the week
+   *  does not matter.
+   *  {{{
+   *    val dsched: DailySchedule = DailySchedule.weeklyStartingMonday()
+   *      .withWeekDaysInCycle(TUESDAY)
+   *      .build()
+   *  }}}
+   *
+   */
+  def weeklyStartingMonday(): DailyScheduleBuilder[DailySchedule] = weekly(MONDAY)
+
+  /** Builder traverses weekly, starting at a particular day of the week. */
+  def weekly(startDayOfWeek: DayOfWeek): DailyScheduleBuilder[DailySchedule] =
+    multipleWeekly(1, startDayOfWeek, 0)
+
+  /** Builder traverses weekly, starting at a particular day of the week.
+   *
+   *  @param startDayOfWeek start day of week of cycle.
+   *  @param startCycleWeekOffset offset in weeks for the start of the cycle.
+   */
+  def multipleWeekly(weeksInCycle: Int, startDayOfWeek: DayOfWeek, startCycleWeekOffset: Int): DailyScheduleBuilder[DailySchedule] = {
+    require(weeksInCycle > 0)
+    require(startCycleWeekOffset >= 0)
+    require(startCycleWeekOffset < weeksInCycle)
+    val dailyCycle = DailyCycle.multipleWeekly(weeksInCycle, startDayOfWeek, startCycleWeekOffset)
+    DailySchedule.builder(dailyCycle)
+  }
 
 }

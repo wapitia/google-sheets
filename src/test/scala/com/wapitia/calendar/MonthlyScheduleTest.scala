@@ -75,7 +75,7 @@ class MonthlyScheduleTest {
       "2019-04-02", "2019-05-02", "2019-06-02", "2019-07-02", "2019-08-02", "2019-09-02")
 
     val ms1: Schedule = MonthlySchedule.builder().dayOfMonth(2).monthsInCycle(1).build
-    val resultStream: Stream[LocalDate] = ms1.onOrAfter(LocalDate.of(2018, 6, 1))
+    val resultStream: Stream[LocalDate] = ms1.starting(LocalDate.of(2018, 6, 1))
     val zippedCompare = expected zip resultStream
     zippedCompare.foreach {
       case (exp, res) => assertDatesEqual(exp, res)
