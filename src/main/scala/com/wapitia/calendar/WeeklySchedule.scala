@@ -26,14 +26,21 @@ object WeeklySchedule {
    *  and sets the cycle offset derived from the initial date's day of week.
    */
   def biweeklyStarting(initialDate: LocalDate): Stream[LocalDate] =
-    multipleWeekly(2, SUNDAY, 0)
+    multipleWeekly(weeksInCycle=2, startDayOfWeek=SUNDAY, startCycleWeekOffset=0)
     .withWeekDayOffsetsInSchedule((biweeklyOffset(initialDate), initialDate.getDayOfWeek))
     .build()
     .starting(initialDate)
 
   def biweeklyOffset(initialDate: LocalDate): Int = multiWeeklyOffset(2, initialDate)
 
-  def multiWeeklyOffset(numWeeks: Int, initialDate: LocalDate): Int = ???
+  private val MWFudgeDays = 0
+//  private val MWFudgeDays = 5   // fails @ -06
+//  private val MWFudgeDays = -2   // fails @
+  def multiWeeklyOffset(numWeeks: Int, initialDate: LocalDate): Int = {
+    // TODO: Reduce
+    val res = ((Epoch.until(initialDate).getDays() + MWFudgeDays) / DaysPerWeek) % numWeeks
+    res
+  }
 
   /** Builder traverses weekly with the week starting on Sunday.
    *

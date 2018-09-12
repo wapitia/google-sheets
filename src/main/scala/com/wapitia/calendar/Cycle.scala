@@ -4,8 +4,11 @@ package calendar
 import com.wapitia.common.{Enum,EValue}
 import CycleKind._
 
-/** Enumeration of common canonical periodic schedule cycles,
- *  though ad-hoc cycle durations are possible in the Wapitia calendar system.
+/** Enumeration of supported periodic schedule cycles.
+ *  DayLike vs MonthLike refers to how a given cycle is incremented,
+ *  either as a multiple of days or as a multiple of months,
+ *  backed by `DailySchedule` or `MonthlySchedule` respectively.
+ *  The increment algorithms are different between the two.
  *
  *  {{{
  *    enum Cycle(kind: CycleKind, cycleSize: Int) {
@@ -23,16 +26,35 @@ import CycleKind._
  *      def asMonths: Double = ...
  *    }
  *  }}}
+ *
+ *  "SemiMonthly" is not supported as a unique cycle. The user instead must
+ *  use the Monthly cycle having multiple schedule days in the cycle.
  */
 sealed trait Cycle extends Cycle.Value with EValue[Cycle] {
   val kind: CycleKind
   val cycleSize: Int
 
+  /** The number of days in the cycle.
+   *  When this is a DayLike cycle (Daily, Weekly, etc), then the
+   *  result is an integer number of days.
+   *  When this is a MonthLike cycle (Monthly, Quarterly, Annually, etc),
+   *  the number of days is not an integer, but is a multiple of the
+   *  average days per month, 30.436875
+   */
   def asDays: Double = kind match {
     case DayLike => cycleSize.toDouble
     case MonthLike => cycleSize.toDouble * DaysPerMonth
   }
 
+  /** The number of months in the cycle.
+   *  When this is a DayLike cycle (Daily, Weekly, etc), then the
+   *  result is not an integer but is a multiple of the
+   *  months per day, 0.03285...
+   *
+   *  When this is a MonthLike cycle (Monthly, Quarterly, Annually, etc),
+   *  the number of is an integer multiple of the number of months
+   *  in the cycle.
+   */
   def asMonths: Double = kind match {
     case DayLike => cycleSize.toDouble / DaysPerMonth
     case MonthLike => cycleSize.toDouble
