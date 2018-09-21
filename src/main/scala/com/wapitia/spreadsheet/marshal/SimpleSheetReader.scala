@@ -39,8 +39,10 @@ package spreadsheet.marshal
  *  however,  is relative to the first data row, so that the row immediately
  *  after the found header row is row number 0.
  *
- *  @tparam A the type of the object to be created for each row.
- *  @tparam B the builder of `A` objects
+ *  SimpleSheetReader is thread-safe and immutable. It creates a new, dedicated SimpleSheetAccumulator
+ *  instance for each read request.
+ *
+ *  @tparam A The created row object for each row.
  *
  *  @param headerFilter  function applied to each row until the header
  *                       row is found.
@@ -63,11 +65,11 @@ package spreadsheet.marshal
  *  @param sheetMarshal  parsing and marshalling configuration for the rows,
  *                       supplier of row marshals.
  */
-class SimpleSheetReader[A,B](
-    headerFilter: (Int, List[Any]) => Boolean,
-    dataRowFilter: (Int, List[Any]) => Boolean,
-    keepGoing: (Int, List[Any]) => Boolean,
-    sheetMarshal: LabelledSheetMarshal[A,B])
+class SimpleSheetReader[A](
+    val headerFilter: RowFilter,
+    val dataRowFilter: RowFilter,
+    val keepGoing: RowFilter,
+    val sheetMarshal: LabelledSheetMarshal[A])
   extends SheetReader[A] {
 
   /**
@@ -78,33 +80,51 @@ class SimpleSheetReader[A,B](
    * The header row (List of Strings) is then retained and used to build
    * all subsequent rows until the list is exhausted.
    */
-  override def read(rows: Seq[List[Any]]): Seq[A] =
-    readIndexed(Stream.continually(0).zip(rows).toList)
+   override def read(rows: Seq[SheetRow], acc: RowAccumulator[A]) {
+      new SimpleSheetAccumulator(this, acc).accum(rows)
+   }
+}
 
-  protected def readIndexed(indexedRows: Seq[(Int, List[Any])]): Seq[A] = indexedRows match {
+/** Instantiated for each sheet that is read. The given RowAccumulator is altered by addition
+ *  of each newly parsed row.
+ */
+class SimpleSheetAccumulator[A](reader: SimpleSheetReader[A], acc: RowAccumulator[A])
+{
+  /**
+   * Read the given spreadsheet from a list of lists of cells into a list
+   * of the target elements of type `A`.
+   * First any rows coming before the one header row are skipped according
+   * to `headerFilter`.
+   * The header row (List of Strings) is then retained and used to build
+   * all subsequent rows until the list is exhausted.
+   */
+  def accum(rows: Seq[SheetRow]) =
+    accumIndexed(Stream.continually(0).zip(rows).toList)
+
+  protected def accumIndexed(indexedRows: Seq[(Int, SheetRow)]): Unit = indexedRows match {
     // skip all initial empty or rather non-header rows
-    case Seq((rowNo, row), rest@_*) if ! headerFilter(rowNo, row) =>
-      readIndexed(rest)
+    case Seq((rowNo, row), rest@_*) if ! reader.headerFilter(rowNo, row) =>
+      accumIndexed(rest)
     // top hrow is the one header row, rest are sequential rows of data
     case Seq((_, hrow), rest@_*)  =>
       // strip away the header row indexing, won't need it anymore since
       // the data row indexes reset to row 0.
-      readDataRows(common.stringsOf(hrow), rest map { case (_, row) => row } )
+      accumDataRows(common.stringsOf(hrow), rest map { case (_, row) => row } )
     // we got nothin'
-    case _ => Nil.asInstanceOf[Seq[A]]
+    case _ => Unit
   }
 
   /** Read, parse, marshal and bind each row of the body given its corresponding header names */
-  protected def readDataRows(header: List[String], body: Seq[List[Any]]): Seq[A] = {
+  protected def accumDataRows(header: List[String], body: Seq[SheetRow]) = {
     // note that this incremental counter restarts at the first data row
     // and had nothing to do with the counter started for the headerFilter
     // in the read function
     Stream.continually(0).zip(body)
-      .takeWhile { case (index,row) => keepGoing(index,row) }
-      .filter { case (index,row) => dataRowFilter(index,row) }
+      .takeWhile { case (index,row) => reader.keepGoing(index,row) }
+      .filter { case (index,row) => reader.dataRowFilter(index,row) }
       .map { case (index,row) =>
         // for each valid indexed data row make a new dedicated row marshaller
-        val rowMarshaller = sheetMarshal.makeRow()
+        val rowMarshaller = reader.sheetMarshal.makeRow()
         // pair up each header name with the corresponding data cell
         // and marshal that name/value pair into the rowMarshaller, which
         // is building the resultant output object.
@@ -112,17 +132,17 @@ class SimpleSheetReader[A,B](
         // then make an object for each row, the sequence of which is the result
         rowMarshaller.make()
       }
+      .foreach(acc.add)
   }
-
 }
 
 object SimpleSheetReader {
 
   /** returns true only if the `row` is not blank. `rowNo` is ignored. */
-  def isNonEmptyRow(rowNo: Int, row: List[Any]): Boolean = !isBlankRow(row)
+  def isNonEmptyRow(rowNo: Int, row: SheetRow): Boolean = !isBlankRow(row)
 
   /** true if any and all cells in the row's list are blank. */
-  def isBlankRow(row: List[Any]): Boolean = row match {
+  def isBlankRow(row: SheetRow): Boolean = row match {
     case Nil => true
     case h :: t => isBlankCell(h) && isBlankRow(t)
   }
@@ -139,18 +159,27 @@ object SimpleSheetReader {
     case _ => false
   }
 
-  def neverStop(rowNo: Int, row: List[Any]) = true
+  def neverStop(rowNo: Int, row: SheetRow) = true
 
-  def apply[A,B](
-      headerFilter: (Int, List[Any]) => Boolean,
-      dataRowFilter: (Int, List[Any]) => Boolean,
-      keepGoing: (Int, List[Any]) => Boolean,
-      rowBuilder: LabelledSheetMarshal[A,B]): SimpleSheetReader[A,B] =
+  def apply[A](
+      headerFilter: RowFilter,
+      dataRowFilter: RowFilter,
+      keepGoing: RowFilter,
+      rowBuilder: LabelledSheetMarshal[A]): SimpleSheetReader[A] =
     new SimpleSheetReader(headerFilter, dataRowFilter, keepGoing, rowBuilder)
 
   /** Create a new `SimpleSheetReader` with the given `rowBuilder` instance,
    *  using `isNonEmptyRow` instances for `headerFilter` and `dataRowFilter`.
    */
-  def apply[A,B](rowBuilder: LabelledSheetMarshal[A,B]): SimpleSheetReader[A,B] =
+  def apply[A](rowBuilder: LabelledSheetMarshal[A]): SimpleSheetReader[A] =
     new SimpleSheetReader(isNonEmptyRow, isNonEmptyRow, neverStop, rowBuilder)
+
+  def seqRead[A](values: List[SheetRow], rowBuilder: LabelledSheetMarshal[A]): Seq[A] = {
+    val rdr = SimpleSheetReader[A](rowBuilder)
+    val accum: SeqRowAccumulator[A] = seqRowAccumulator[A]()
+    rdr.read(values, accum)
+    val rows: Seq[A] = accum.results
+    rows
+  }
+
 }

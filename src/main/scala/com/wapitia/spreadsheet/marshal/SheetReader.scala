@@ -24,8 +24,9 @@ package marshal
 @FunctionalInterface
 trait SheetReader[A] {
 
-  /** Read a list of rows of lists of cells into a list of `A` objects,
+  /** Read a list of rows of lists of cells into a sequence of `A` objects,
+   *  accumulating them into a dedicated RowAccumulator,
    *  where `A` represents the marshalled combined record of one row.
    */
-  def read(rawsheet: Seq[List[Any]]): Seq[A]
+  def read(rawsheet: Seq[SheetRow], acc: RowAccumulator[A])
 }

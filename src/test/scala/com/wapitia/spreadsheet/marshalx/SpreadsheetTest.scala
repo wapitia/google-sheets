@@ -1,13 +1,14 @@
 package com.wapitia.spreadsheet.marshalx
 
-import com.wapitia.spreadsheet.marshal.SimpleSheetReader
+import com.wapitia.spreadsheet.marshal.SimpleSheetReader.seqRead
+import com.wapitia.spreadsheet.marshal.SheetRow
 
 import org.junit.Assert._
 import org.junit.Test
 
 class SpreadsheetTest {
 
-  val sampleSheet: List[List[Any]] = List(
+  val sampleSheet: List[SheetRow] = List(
     List(),
     List("Acct", "Cycle", "Date", "Age", "Income"),
     List("Acct-1", "Monthly", BigDecimal(38957), 32, BigDecimal(35000.0D)),
@@ -21,10 +22,7 @@ class SpreadsheetTest {
 
   @Test
   def testGoogleSheets() {
-    val mrsh = new AcctMockMarshaller
-    val rdr = SimpleSheetReader[AcctMock,AcctMock.Builder](mrsh)
-    val rows: Seq[AcctMock] = rdr.read(sampleSheet)
-    //    rows.foreach(println)
+    val rows: Seq[AcctMock] = seqRead[AcctMock](sampleSheet, new AcctMockMarshaller)
     assertEquals(expectedSheet, rows.map(_.toString()))
   }
 

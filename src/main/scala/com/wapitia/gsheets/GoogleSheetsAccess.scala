@@ -20,6 +20,8 @@ import com.google.api.services.sheets.v4.SheetsScopes
 import com.google.api.services.sheets.v4.model.ValueRange
 import com.google.api.client.auth.oauth2.AuthorizationCodeFlow
 
+import com.wapitia.spreadsheet.marshal.SheetRow
+
 /** Load spreadsheet data from Google Drive via the google API services.
  */
 class GoogleSheetsAccess(appName: String, scopes: List[String]) {
@@ -31,7 +33,7 @@ class GoogleSheetsAccess(appName: String, scopes: List[String]) {
    *  Uses default client secrets file and credentials folder.
    *  Delivers string values as seen in the heads-up screen formats.
    */
-  def loadSheetFormattedValues(sheetSid: String, loadRange: String) : List[List[Any]] =
+  def loadSheetFormattedValues(sheetSid: String, loadRange: String) : List[SheetRow] =
     loadSheet(sheetSid, loadRange, ValueRenderOption.FORMATTED_VALUE, ClientSecretsFile, CredentialsFolder)
 
   /** Load the values from a Google Sheet given the sheet's SID and a parseable
@@ -42,7 +44,7 @@ class GoogleSheetsAccess(appName: String, scopes: List[String]) {
    *  o other text as String values pretty much unchanged
    *  o Null object on empty cells
    */
-  def loadSheetUnformattedValues(sheetSid: String, loadRange: String) : List[List[Any]] =
+  def loadSheetUnformattedValues(sheetSid: String, loadRange: String) : List[SheetRow] =
     loadSheet(sheetSid, loadRange, ValueRenderOption.UNFORMATTED_VALUE, ClientSecretsFile, CredentialsFolder)
 
   /** Load the values from a Google Sheet given the sheet's SID and a parseable
@@ -52,7 +54,7 @@ class GoogleSheetsAccess(appName: String, scopes: List[String]) {
    *  instead of the raw values where formulas are defined, but otherwise delivers data as
    *  `loadSheetUnformattedValues`.
    */
-  def loadSheetFormula(sheetSid: String, loadRange: String) : List[List[Any]] =
+  def loadSheetFormula(sheetSid: String, loadRange: String) : List[SheetRow] =
     loadSheet(sheetSid, loadRange, ValueRenderOption.FORMULA, ClientSecretsFile, CredentialsFolder)
 
   /** Load the values from a Google Sheet given the sheet's SID and a parseable
@@ -75,7 +77,7 @@ class GoogleSheetsAccess(appName: String, scopes: List[String]) {
       loadRange: String,
       valueOption: ValueRenderOption,
       clientSecretsFile: String,
-      credentialsFolder: String): List[List[Any]] = {
+      credentialsFolder: String): List[SheetRow] = {
 
     import scala.collection.JavaConverters._
     import GoogleSheetsAccess._
