@@ -47,6 +47,6 @@ class TransactionTemplateMarshaller extends LabelledSheetMarshal[TransactionTemp
 
   init()
 
-  override def makeRow[Any]() = new RowBuilder
+  override def makeRowMarshaller[Any]() = new RowBuilder
 
 }

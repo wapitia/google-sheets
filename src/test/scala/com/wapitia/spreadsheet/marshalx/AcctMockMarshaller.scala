@@ -35,5 +35,5 @@ class AcctMockMarshaller extends LabelledSheetMarshal[AcctMock]  {
 
   init()
 
-  override def makeRow[Any]() = new RowBuilder
+  override def makeRowMarshaller[Any]() = new RowBuilder
 }

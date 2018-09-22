@@ -16,6 +16,7 @@ abstract class LabelledSheetMarshal[A] {
    */
   type CellMarshal = InMarshal[Any,Any]
 
+  /** Function taking a name and value and setting a value via a RowMarshal */
   type BinderFunc[C] = (_ <: RowMarshal[C],String,C) => Unit
 
   /** Accumulator and Builder for each row of data in the spreadsheet */
@@ -29,7 +30,7 @@ abstract class LabelledSheetMarshal[A] {
   }
 
   /** Start a new row marshal to ingest incoming raw values to produce its object */
-  def makeRow[C](): RowMarshal[C]
+  def makeRowMarshaller[C](): RowMarshal[C]
 
   val cellMarshalMap = scala.collection.mutable.Map[String,CellMarshal]()
   val objMarshalMap = scala.collection.mutable.Map[String,BinderFunc[_]]()

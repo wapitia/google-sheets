@@ -80,15 +80,15 @@ class SimpleSheetReader[A](
    * The header row (List of Strings) is then retained and used to build
    * all subsequent rows until the list is exhausted.
    */
-   override def read(rows: Seq[SheetRow], acc: RowAccumulator[A]) {
-      new SimpleSheetAccumulator(this, acc).accum(rows)
-   }
+  override def read(rows: Seq[SheetRow], acc: RowAccumulator[A]) {
+    new SimpleSheetAccumulator(this, acc).accum(rows)
+  }
 }
 
 /** Instantiated for each sheet that is read. The given RowAccumulator is altered by addition
  *  of each newly parsed row.
  */
-class SimpleSheetAccumulator[A](reader: SimpleSheetReader[A], acc: RowAccumulator[A])
+class SimpleSheetAccumulator[A](rdr: SimpleSheetReader[A], acc: RowAccumulator[A])
 {
   /**
    * Read the given spreadsheet from a list of lists of cells into a list
@@ -103,7 +103,7 @@ class SimpleSheetAccumulator[A](reader: SimpleSheetReader[A], acc: RowAccumulato
 
   protected def accumIndexed(indexedRows: Seq[(Int, SheetRow)]): Unit = indexedRows match {
     // skip all initial empty or rather non-header rows
-    case Seq((rowNo, row), rest@_*) if ! reader.headerFilter(rowNo, row) =>
+    case Seq((rowNo, row), rest@_*) if ! rdr.headerFilter(rowNo, row) =>
       accumIndexed(rest)
     // top hrow is the one header row, rest are sequential rows of data
     case Seq((_, hrow), rest@_*)  =>
@@ -120,11 +120,11 @@ class SimpleSheetAccumulator[A](reader: SimpleSheetReader[A], acc: RowAccumulato
     // and had nothing to do with the counter started for the headerFilter
     // in the read function
     Stream.continually(0).zip(body)
-      .takeWhile { case (index,row) => reader.keepGoing(index,row) }
-      .filter { case (index,row) => reader.dataRowFilter(index,row) }
+      .takeWhile { case (index,row) => rdr.keepGoing(index,row) }
+      .filter { case (index,row) => rdr.dataRowFilter(index,row) }
       .map { case (index,row) =>
         // for each valid indexed data row make a new dedicated row marshaller
-        val rowMarshaller = reader.sheetMarshal.makeRow()
+        val rowMarshaller = rdr.sheetMarshal.makeRowMarshaller()
         // pair up each header name with the corresponding data cell
         // and marshal that name/value pair into the rowMarshaller, which
         // is building the resultant output object.
