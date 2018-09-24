@@ -31,7 +31,7 @@ package object marshal {
   val boolMarshal: InMarshal[Any,Boolean] = NumberMarshals.boolMarshal
 
   /** Create and return a fresh SeqRowAccumulator which is backed by a ListBuffer */
-  def seqRowAccumulator[A](): SeqRowAccumulator[A] = new ListRowAccumulator[A]()
+  def makeSeqRowAccumulator[A](): SeqRowAccumulator[A] = new ListRowAccumulator[A]()
 
 }
 

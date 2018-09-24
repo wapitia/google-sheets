@@ -9,8 +9,8 @@ import com.wapitia.calendar.Cycle
  * to a target account.
  * The template does not define a particular start date, but does
  * have slots to describe its cycle offset and an optional final payment date.
- * A specific transaction combines an actual date with the information from
- * this template.
+ * A specific `Transaction` instance is made from a combination of an actual
+ * date and this TransactionTemplate.
  */
 case class TransactionTemplate(
     item: String,

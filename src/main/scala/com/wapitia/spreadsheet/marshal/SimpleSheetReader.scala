@@ -176,7 +176,7 @@ object SimpleSheetReader {
 
   def seqRead[A](values: List[SheetRow], rowBuilder: LabelledSheetMarshal[A]): Seq[A] = {
     val rdr = SimpleSheetReader[A](rowBuilder)
-    val accum: SeqRowAccumulator[A] = seqRowAccumulator[A]()
+    val accum: SeqRowAccumulator[A] = makeSeqRowAccumulator[A]()
     rdr.read(values, accum)
     val rows: Seq[A] = accum.results
     rows

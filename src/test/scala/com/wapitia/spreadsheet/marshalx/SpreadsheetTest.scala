@@ -5,25 +5,19 @@ import com.wapitia.spreadsheet.marshal.SheetRow
 
 import org.junit.Assert._
 import org.junit.Test
+import com.wapitia.gsheets.marshal.GSheetsDateMarshaller.toGoogleEpochDay
 
 class SpreadsheetTest {
 
-  val sampleSheet: List[SheetRow] = List(
-    List(),
-    List("Acct", "Cycle", "Date", "Age", "Income"),
-    List("Acct-1", "Monthly", BigDecimal(38957), 32, BigDecimal(35000.0D)),
-    List("Acct-2", "BiWeekly", new java.math.BigDecimal(38997), 14.asInstanceOf[Integer], BigDecimal(14500.0D))
-  )
+  import com.wapitia.calendar._
 
-  val expectedSheet: List[String] = List(
-    "AcctMock(Acct-1,Monthly,2006-08-28,32,Some(35000.0))",
-    "AcctMock(Acct-2,BiWeekly,2006-10-07,14,Some(14500.0))"
-  )
+  val samp = AcctMockSample
 
   @Test
   def testGoogleSheets() {
-    val rows: Seq[AcctMock] = seqRead[AcctMock](sampleSheet, new AcctMockMarshaller)
-    assertEquals(expectedSheet, rows.map(_.toString()))
+    val rows: Seq[AcctMock] = seqRead[AcctMock](samp.sampleSheet, new AcctMockMarshaller)
+    assertEquals(samp.expectedSheet, rows.map(_.toString()))
   }
+
 
 }

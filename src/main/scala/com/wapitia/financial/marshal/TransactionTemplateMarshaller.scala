@@ -30,7 +30,12 @@ class TransactionTemplateMarshaller extends LabelledSheetMarshal[TransactionTemp
     val intoInt = intMarshal
     val intoCycle = CycleMarshaller.Into
 
-    marshalChain("Item",             intoString, (m: RowBuilder, name: String, str: String) => m.rb = m.rb.item(str) )
+    def marshalItem(m: RowBuilder, name: String, str: String) {
+      m.rb = m.rb.item(str)
+    }
+
+//    marshalChain("Item",             intoString, (m: RowBuilder, name: String, str: String) => m.rb = m.rb.item(str) )
+    marshalChain("Item",             intoString, marshalItem)
     marshalChain("Next Transaction", intoDate, (m: RowBuilder, name: String, date: LocalDate) => m.rb = m.rb.nextTrans(date) )
     marshalChain("Amount",           intoCurrency, (m: RowBuilder, name: String, currency: BigDecimal) => m.rb = m.rb.amount(currency) )
     marshalChain("Cycle",            intoCycle, (m: RowBuilder, name: String, v: Cycle) => m.rb = m.rb.cycleKind(v) )
