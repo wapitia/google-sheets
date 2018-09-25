@@ -10,6 +10,7 @@ import com.wapitia.financial.TransactionTemplate
 import com.wapitia.common.marshal.InMarshal
 import com.wapitia.spreadsheet.marshal.{intMarshal,boolMarshal,simpleStringMarshal,nullableCurrencyMarshal,LabelledSheetMarshal}
 import com.wapitia.gsheets.marshal.nullableDateMarshal
+import com.wapitia.spreadsheet.marshal.RowMarshal
 
 /**
  * Tool for translating a spreadsheet containing rows of financial transaction template data
@@ -17,7 +18,7 @@ import com.wapitia.gsheets.marshal.nullableDateMarshal
  */
 class TransactionTemplateMarshaller extends LabelledSheetMarshal[TransactionTemplate]  {
 
-  class RowBuilder extends RowMarshal {
+  class RowBuilder(parent: TransactionTemplateMarshaller) extends RowMarshal[TransactionTemplate](parent) {
     var rb: TransactionTemplate.Builder = TransactionTemplate.builder()
     override def make(): TransactionTemplate = rb.build()
   }
@@ -67,6 +68,6 @@ class TransactionTemplateMarshaller extends LabelledSheetMarshal[TransactionTemp
 
   init()
 
-  override def makeRowMarshaller[Any]() = new RowBuilder
+  override def makeRowMarshaller[Any]() = new RowBuilder(this)
 
 }

@@ -1,20 +1,11 @@
 package com.wapitia.spreadsheet.marshalx
 
 import java.time.LocalDate
+import org.w3c.dom.{Document, Element}
+import javax.xml.parsers.{DocumentBuilderFactory, DocumentBuilder}
 
-import com.wapitia.common.marshal.InMarshal
-import com.wapitia.spreadsheet.marshal.{simpleStringMarshal, nullableCurrencyMarshal, intMarshal}
+import com.wapitia.spreadsheet.marshal.{RowMarshal, RowAccumulator, LabelledSheetMarshal}
 import com.wapitia.gsheets.marshal.nullableDateMarshal
-import com.wapitia.calendar.{Cycle, CycleMarshaller}
-import com.wapitia.spreadsheet.marshal.LabelledSheetMarshal
-import org.w3c.dom.Element
-import javax.xml.parsers.DocumentBuilder
-import javax.xml.parsers.DocumentBuilderFactory
-import com.wapitia.spreadsheet.marshal.RowAccumulator
-import org.w3c.dom.Document
-import java.lang.reflect.Method
-import java.lang.annotation.Annotation
-import java.lang.reflect.Constructor
 
 /** Accumulates generated objects coming from each data row of a spreadsheet.
  *  @tparam A Type of element that has been marshalled from a spreadsheet row.
@@ -34,27 +25,17 @@ class RowDocElementAccumulator extends RowAccumulator[Element] {
   def results: Element = container
 }
 
-abstract class MarshallerToElement(containerBldr: RowDocElementAccumulator) extends LabelledSheetMarshal[Element] {
+class ERowBldr(parent: MarshallerToElement, containerBldr: RowDocElementAccumulator) extends RowMarshal[Element](parent) {
 
-//  val containerBldr: RowDocElementAccumulator = new RowDocElementAccumulator()
+  val resultElt: Element = containerBldr.document.createElement("item")
 
-  class ERowBldr extends RowMarshal {
-
-    val resultElt: Element = containerBldr.document.createElement("item")
-
-    override def make(): Element = {
-      resultElt
-    }
-
-    def setItem[C](name: String, value: C) {
-      val attrName = toAttributeName(name)
-      resultElt.setAttribute(attrName, value.toString)
-    }
-
+  override def make(): Element = {
+    resultElt
   }
 
-  override def defBuild[C,ERowBldr](erb: ERowBldr, name: String, v: C) {
-    erb.setItem[C](name, v)
+  def setItem[C](name: String, value: C) {
+    val attrName = toAttributeName(name)
+    resultElt.setAttribute(attrName, value.toString)
   }
 
   def toAttributeName(name: String): String = {
@@ -63,7 +44,13 @@ abstract class MarshallerToElement(containerBldr: RowDocElementAccumulator) exte
       case ch => ch
     }
   }
+}
 
+abstract class MarshallerToElement(containerBldr: RowDocElementAccumulator) extends LabelledSheetMarshal[Element] {
+
+  override def defBuild[C,ERowBldr](erb: ERowBldr, name: String, v: C) {
+    erb.setItem[C](name, v)
+  }
 }
 
 /**
@@ -77,5 +64,5 @@ class AcctMockMarshallerAsElement(containerBldr: RowDocElementAccumulator) exten
 
   init()
 
-  override def makeRowMarshaller[Any]() = new ERowBldr
+  override def makeRowMarshaller[Any]() = new ERowBldr(this, containerBldr)
 }

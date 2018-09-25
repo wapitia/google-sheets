@@ -7,13 +7,14 @@ import com.wapitia.spreadsheet.marshal.{simpleStringMarshal, nullableCurrencyMar
 import com.wapitia.gsheets.marshal.nullableDateMarshal
 import com.wapitia.calendar.{Cycle, CycleMarshaller}
 import com.wapitia.spreadsheet.marshal.LabelledSheetMarshal
+import com.wapitia.spreadsheet.marshal.RowMarshal
 
 /**
  * Test for marshalling a google spreadsheet's data into a mock Acct instance
  */
 class AcctMockMarshaller extends LabelledSheetMarshal[AcctMock]  {
 
-  class RowBuilder extends RowMarshal {
+  class RowBuilder(parent: AcctMockMarshaller) extends RowMarshal[AcctMock](parent) {
     var rb: AcctMock.Builder = AcctMock.builder()
     override def make(): AcctMock = rb.build()
   }
@@ -29,5 +30,5 @@ class AcctMockMarshaller extends LabelledSheetMarshal[AcctMock]  {
 
   init()
 
-  override def makeRowMarshaller[Any]() = new RowBuilder
+  override def makeRowMarshaller[Any]() = new RowBuilder(this)
 }
