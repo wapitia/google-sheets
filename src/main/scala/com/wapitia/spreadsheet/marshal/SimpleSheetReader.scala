@@ -98,8 +98,12 @@ class SimpleSheetAccumulator[A](rdr: SimpleSheetReader[A], acc: RowAccumulator[A
    * The header row (List of Strings) is then retained and used to build
    * all subsequent rows until the list is exhausted.
    */
-  def accum(rows: Seq[SheetRow]) =
-    accumIndexed(Stream.continually(0).zip(rows).toList)
+//  def accum(rows: Seq[SheetRow]) =
+//    accumIndexed(Stream.continually(0).zip(rows).toList)
+  def accum(rows: Seq[SheetRow]) = {
+    val strm = Stream.continually(0).zip(rows).toSeq
+    accumIndexed(strm)
+  }
 
   protected def accumIndexed(indexedRows: Seq[(Int, SheetRow)]): Unit = indexedRows match {
     // skip all initial empty or rather non-header rows

@@ -12,6 +12,9 @@ import javax.xml.parsers.DocumentBuilder
 import javax.xml.parsers.DocumentBuilderFactory
 import com.wapitia.spreadsheet.marshal.RowAccumulator
 import org.w3c.dom.Document
+import java.lang.reflect.Method
+import java.lang.annotation.Annotation
+import java.lang.reflect.Constructor
 
 /** Accumulates generated objects coming from each data row of a spreadsheet.
  *  @tparam A Type of element that has been marshalled from a spreadsheet row.
@@ -21,7 +24,6 @@ class RowDocElementAccumulator extends RowAccumulator[Element] {
   val dbf: DocumentBuilderFactory = DocumentBuilderFactory.newInstance()
   val db: DocumentBuilder = dbf.newDocumentBuilder()
   val document: Document = db.newDocument()
-  //    val containerElt: document.createElement("container")
   val container: Element = document.createElement("container")
 
   /** Append a row to this accumulator. */
@@ -32,34 +34,36 @@ class RowDocElementAccumulator extends RowAccumulator[Element] {
   def results: Element = container
 }
 
-abstract class MarshallerToElement extends LabelledSheetMarshal[Element] {
+abstract class MarshallerToElement(containerBldr: RowDocElementAccumulator) extends LabelledSheetMarshal[Element] {
 
-  val containerBldr: RowDocElementAccumulator = new RowDocElementAccumulator()
+//  val containerBldr: RowDocElementAccumulator = new RowDocElementAccumulator()
 
   class RowBuilder[C] extends RowMarshal[C] {
 
     val resultElt: Element = containerBldr.document.createElement("item")
 
-    override def make(): Element = resultElt
-    
-    override def defBuildFunc: (RowBuilder[C],String,C) => Unit = defBuild _
+    override def make(): Element = {
+      resultElt
+    }
 
-    def defBuild(m: RowBuilder[C], name: String, v: C) = { 
-      defBuildT(name, v)
+    def defBuildT[C](name: String, value: C) = {
+      val attrName = toAttributeName(name)
+      resultElt.setAttribute(attrName, value.toString)
     }
-    
-    def defBuildT(name: String, v: C) = { 
-      
-    }
-    
+
   }
-  
-//  def defBuildFunc[M <: RowMarshal[C],C]: (M,String,C) => Unit = NOOP[M,C] _
-    
-  
+
+//  override def defBuildFunc[C,M <: RowMarshal[C]]: (M,String,C) => Unit = defBuild[C,RowMarshal[C]] _
+
+  override def defBuild[C,M <: RowMarshal[C]](m: M, name: String, v: C) = {
+    m.asInstanceOf[RowBuilder[C]].defBuildT[C](name, v)
+  }
 
   def toAttributeName(name: String): String = {
-    name.trim().toLowerCase().map { case ' ' => '-' }
+    name.trim().toLowerCase().map {
+      case ' ' => '-'
+      case ch => ch
+    }
   }
 
 }
@@ -67,24 +71,10 @@ abstract class MarshallerToElement extends LabelledSheetMarshal[Element] {
 /**
  * Test for marshalling a google spreadsheet's data into a mock Acct instance
  */
-class AcctMockMarshallerAsElement extends MarshallerToElement  {
-
+class AcctMockMarshallerAsElement(containerBldr: RowDocElementAccumulator) extends MarshallerToElement(containerBldr) {
 
   private[this] def init() {
-//    val intoDate = nullableDateMarshal.asInstanceOf[InMarshal[Any,Any]]
-//    val intoString = simpleStringMarshal
-//    val intoCash = nullableCurrencyMarshal
-//    val intoInt = intMarshal
-//    val intoCycle = CycleMarshaller.Into
-//
-//    def toAcct(m: RowBuilder, name: String, str: String) = m.rb = m.rb.acctName(str)
-//
-//    // Columns    named ... marshalled ...  then bound into builder instance...
-//    marshalChain("Acct",   intoString, (m: RowBuilder, name: String, str: String) => m.rb = m.rb.acctName(str))
-//    marshalChain("Cycle",  intoCycle,  (m: RowBuilder, name: String, v: Cycle) => m.rb = m.rb.cycle(v))
-//    marshalChain("Date",   intoDate,   (m: RowBuilder, name: String, date: LocalDate) => m.rb = m.rb.date(date))
-//    marshalChain("Age",    intoInt,    (m: RowBuilder, name: String, i: Int) => m.rb = m.rb.age(i))
-//    marshalChain("Income", intoCash,   (m: RowBuilder, name: String, currency: BigDecimal) => m.rb = m.rb.income(currency))
+    marshalChain("Date",   nullableDateMarshal,   (m: RowBuilder[LocalDate], name: String, date: LocalDate) => m.defBuildT(name, date))
   }
 
   init()

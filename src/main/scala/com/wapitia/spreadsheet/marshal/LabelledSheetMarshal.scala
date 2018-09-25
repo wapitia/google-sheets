@@ -27,8 +27,6 @@ abstract class LabelledSheetMarshal[A]() {
     /** Make the instance of the resultant object for this row */
     def make(): A
 
-    def defBuildFunc: (RowMarshal[C],String,C) => Unit = NOOP[RowMarshal[C],C] _
-
     /** Set the value for a named slot in the accumulating result object */
     def set(name: String, rawvalue: Any): Unit = {
 
@@ -36,9 +34,11 @@ abstract class LabelledSheetMarshal[A]() {
 
       if (!cellMarshal.isNull(rawvalue)) {
   //      val buildFunc = objMarshalMap.getOrElse(name, NOOP[RowMarshal[C],C] _).asInstanceOf[(RowMarshal[C],String,C) => Unit]
-        val buildFunc = objMarshalMap.getOrElse(name, defBuildFunc _).asInstanceOf[(RowMarshal[C],String,C) => Unit]
+        val deffunc = defBuild[C,RowMarshal[C]] _
+        val buildFunc = objMarshalMap.getOrElse(name, deffunc )
+        val bf = buildFunc.asInstanceOf[(RowMarshal[C],String,C) => Unit]
         val mval: C = cellMarshal.unmarshal(rawvalue)
-        buildFunc(this,name,mval)
+        bf(this,name,mval)
       }
     }
 
@@ -57,6 +57,9 @@ abstract class LabelledSheetMarshal[A]() {
   def addBinder[C,RM <: RowMarshal[C]](name: String, binder: BinderFunc[C]) {
     objMarshalMap.put(name, binder)
   }
+
+//  def defBuildFunc[C,M <: RowMarshal[C]]: (M,String,C) => Unit = NOOP[M,C] _
+  def defBuild[C,M <: RowMarshal[C]](m: M, name: String, value: C): Unit = NOOP[M,C](m,name,value)
 
   /** Convenience method to add both a marshal and a binder for one named cell */
   def marshalChain[C,RM <: RowMarshal[C]](name: String, marshal: CellMarshal[C], binder: BinderFunc[C])  {
