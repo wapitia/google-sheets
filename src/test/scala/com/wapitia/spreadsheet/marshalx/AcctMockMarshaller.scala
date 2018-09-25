@@ -13,7 +13,7 @@ import com.wapitia.spreadsheet.marshal.LabelledSheetMarshal
  */
 class AcctMockMarshaller extends LabelledSheetMarshal[AcctMock]  {
 
-  class RowBuilder[C] extends RowMarshal[C] {
+  class RowBuilder extends RowMarshal {
     var rb: AcctMock.Builder = AcctMock.builder()
     override def make(): AcctMock = rb.build()
   }
@@ -26,11 +26,11 @@ class AcctMockMarshaller extends LabelledSheetMarshal[AcctMock]  {
     val intoCycle = CycleMarshaller.Into
 
     // Columns    named ... marshalled ...  then bound into builder instance...
-    marshalChain("Acct",   intoString, (m: RowBuilder[String], name: String, str: String) => m.rb = m.rb.acctName(str))
-    marshalChain("Cycle",  intoCycle,  (m: RowBuilder[Cycle], name: String, v: Cycle) => m.rb = m.rb.cycle(v))
-    marshalChain("Date",   intoDate,   (m: RowBuilder[LocalDate], name: String, date: LocalDate) => m.rb = m.rb.date(date))
-    marshalChain("Age",    intoInt,    (m: RowBuilder[Int], name: String, i: Int) => m.rb = m.rb.age(i))
-    marshalChain("Income", intoCash,   (m: RowBuilder[BigDecimal], name: String, currency: BigDecimal) => m.rb = m.rb.income(currency))
+    marshalChain("Acct",   intoString, (m: RowBuilder, name: String, str: String) => m.rb = m.rb.acctName(str))
+    marshalChain("Cycle",  intoCycle,  (m: RowBuilder, name: String, v: Cycle) => m.rb = m.rb.cycle(v))
+    marshalChain("Date",   intoDate,   (m: RowBuilder, name: String, date: LocalDate) => m.rb = m.rb.date(date))
+    marshalChain("Age",    intoInt,    (m: RowBuilder, name: String, i: Int) => m.rb = m.rb.age(i))
+    marshalChain("Income", intoCash,   (m: RowBuilder, name: String, currency: BigDecimal) => m.rb = m.rb.income(currency))
   }
 
   init()

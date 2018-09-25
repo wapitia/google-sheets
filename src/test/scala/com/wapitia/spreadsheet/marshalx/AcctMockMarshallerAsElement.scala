@@ -38,7 +38,7 @@ abstract class MarshallerToElement(containerBldr: RowDocElementAccumulator) exte
 
 //  val containerBldr: RowDocElementAccumulator = new RowDocElementAccumulator()
 
-  class RowBuilder[C] extends RowMarshal[C] {
+  class RowBuilder extends RowMarshal {
 
     val resultElt: Element = containerBldr.document.createElement("item")
 
@@ -55,8 +55,8 @@ abstract class MarshallerToElement(containerBldr: RowDocElementAccumulator) exte
 
 //  override def defBuildFunc[C,M <: RowMarshal[C]]: (M,String,C) => Unit = defBuild[C,RowMarshal[C]] _
 
-  override def defBuild[C,M <: RowMarshal[C]](m: M, name: String, v: C) = {
-    m.asInstanceOf[RowBuilder[C]].defBuildT[C](name, v)
+  override def defBuild[C,M <: RowMarshal](m: M, name: String, v: C) = {
+    m.asInstanceOf[RowBuilder].defBuildT[C](name, v)
   }
 
   def toAttributeName(name: String): String = {
@@ -74,7 +74,7 @@ abstract class MarshallerToElement(containerBldr: RowDocElementAccumulator) exte
 class AcctMockMarshallerAsElement(containerBldr: RowDocElementAccumulator) extends MarshallerToElement(containerBldr) {
 
   private[this] def init() {
-    marshalChain("Date",   nullableDateMarshal,   (m: RowBuilder[LocalDate], name: String, date: LocalDate) => m.defBuildT(name, date))
+    marshalChain("Date",   nullableDateMarshal, (m: RowBuilder, name: String, date: LocalDate) => m.defBuildT(name, date))
   }
 
   init()
