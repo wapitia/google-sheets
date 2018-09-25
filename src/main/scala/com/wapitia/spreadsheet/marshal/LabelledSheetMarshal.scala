@@ -33,7 +33,6 @@ abstract class LabelledSheetMarshal[A]() {
       val cellMarshal = cellMarshalMap.getOrElse(name, MarshalIdentity).asInstanceOf[InMarshal[Any,C]]
 
       if (!cellMarshal.isNull(rawvalue)) {
-  //      val buildFunc = objMarshalMap.getOrElse(name, NOOP[RowMarshal[C],C] _).asInstanceOf[(RowMarshal[C],String,C) => Unit]
         val deffunc = defBuild[C,RowMarshal] _
         val buildFunc = objMarshalMap.getOrElse(name, deffunc )
         val bf = buildFunc.asInstanceOf[(RowMarshal,String,C) => Unit]
@@ -58,8 +57,9 @@ abstract class LabelledSheetMarshal[A]() {
     objMarshalMap.put(name, binder)
   }
 
-//  def defBuildFunc[C,M <: RowMarshal[C]]: (M,String,C) => Unit = NOOP[M,C] _
-  def defBuild[C,M <: RowMarshal](m: M, name: String, value: C): Unit = NOOP[M,C](m,name,value)
+  def defBuild[C,M <: RowMarshal](m: M, name: String, value: C) {
+    NOOP[M,C](m,name,value)
+  }
 
   /** Convenience method to add both a marshal and a binder for one named cell */
   def marshalChain[C,RM <: RowMarshal](name: String, marshal: CellMarshal[C], binder: BinderFunc[C])  {
