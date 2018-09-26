@@ -4,7 +4,7 @@ import java.time.LocalDate
 import org.w3c.dom.{Document, Element}
 import javax.xml.parsers.{DocumentBuilderFactory, DocumentBuilder}
 
-import com.wapitia.spreadsheet.marshal.{RowMarshal, RowAccumulator, CellMarshalRepo, ConfiguredSheetMarshal}
+import com.wapitia.spreadsheet.marshal.{CellMarshal, RowMarshal, RowAccumulator, CellMarshalRepo, ConfiguredSheetMarshal}
 import com.wapitia.gsheets.marshal.nullableDateMarshal
 
 /** Accumulates generated objects coming from each data row of a spreadsheet.
@@ -31,15 +31,13 @@ class RowDocElementAccumulator(containerEltName: String, itemEltName: String) ex
 
 class ERowBldr(cellMarshalRepo: CellMarshalRepo, containerBldr: RowDocElementAccumulator) extends RowMarshal[Element] {
 
-  import com.wapitia.spreadsheet.marshal.RowMarshal._
-
   val resultElt: Element = containerBldr.newResultElement()
 
   override def make(): Element = {
     resultElt
   }
 
-  override def cellMarshal[C](name: String): CellMarshal[C] = cellMarshalRepo.getCellMarshal[C](name)
+  override def getCellMarshal[C](name: String): CellMarshal[C] = cellMarshalRepo.getCellMarshal[C](name)
 
   override def setMarshalled[C](name: String, value: C) {
     val attrName = toAttributeName(name)
@@ -66,7 +64,7 @@ class AcctMockMarshallerAsElement(containerBldr: RowDocElementAccumulator) exten
 
   private[this] def init() {
     marshalChain("Date", nullableDateMarshal,
-        (m: RM, name: String, date: LocalDate) => m.setMarshalled(name, date))
+      (m: RM, name: String, date: LocalDate) => m.setMarshalled(name, date))
   }
 
   init()

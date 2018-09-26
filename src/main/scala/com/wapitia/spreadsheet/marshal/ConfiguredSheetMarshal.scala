@@ -5,14 +5,7 @@ package marshal
 import com.wapitia.common.marshal.InMarshal
 import com.wapitia.common.BLDR
 
-import com.wapitia.spreadsheet.marshal.RowMarshal.{CellMarshal}
 import com.wapitia.spreadsheet.marshal.ConfiguredRowMarshal.{BoundedSetFunc,UnboundSetFunc}
-
-class ConfiguredRowBuilder[A,M <: ConfiguredRowMarshal[A,M],B <: BLDR[A]](mcRepo: MarshalSetRepo[A,M], newBuilder: B)
-extends ConfiguredRowMarshal[A,M](mcRepo) {
-  var rb: B = newBuilder
-  override def make(): A = rb.build()
-}
 
 /** Marshals a spreadsheet of data into rows of objects of some type `A`.
  *  This is configured with marshals and binders for each labeled column.

@@ -11,6 +11,11 @@ package object marshal {
 
   type SheetRow = List[Any]
 
+  /** Marshals a cell value from its original value into the internal type before
+   *  binding via the binder function.
+   */
+  type CellMarshal[C] = InMarshal[Any,C]
+
   /** Filter returns true if the given row is to be processed.
    *  This function takes a row number and the sheet row as a sequential list of values.
    */

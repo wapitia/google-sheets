@@ -4,7 +4,6 @@ package marshal
 
 import com.wapitia.common.marshal.InMarshal
 
-import com.wapitia.spreadsheet.marshal.RowMarshal.{CellMarshal}
 import com.wapitia.spreadsheet.marshal.ConfiguredRowMarshal.{BoundedSetFunc,UnboundSetFunc}
 
 class CellMarshalLibrary(defaultMarshal: InMarshal[_,_]) extends CellMarshalRepo {

@@ -2,8 +2,6 @@ package com.wapitia
 package spreadsheet
 package marshal
 
-import com.wapitia.spreadsheet.marshal.RowMarshal.{CellMarshal}
-
 trait CellMarshalRepo {
 
   def getCellMarshal[C](name: String): CellMarshal[C]
@@ -30,9 +28,9 @@ abstract class ConfiguredRowMarshal[A,M <: ConfiguredRowMarshal[A,M]](mcRepo: Ma
   override def make(): A
 
   def defaultSetMarshalled[C](name: String, value: C): Unit =
-      throw new RuntimeException(s"Unsupported value named $name, value: $value")
+    throw new RuntimeException(s"Unsupported value named $name, value: $value")
 
-  override def cellMarshal[C](name: String): CellMarshal[C] = mcRepo.repoCellMarshal.getCellMarshal[C](name)
+  override def getCellMarshal[C](name: String): CellMarshal[C] = mcRepo.repoCellMarshal.getCellMarshal[C](name)
 
   override def setMarshalled[C](name: String, value: C) {
     val sf: BoundedSetFunc[C] = mcRepo.repoSetFunc.getBoundSetFunc(this.asInstanceOf[M], name)
