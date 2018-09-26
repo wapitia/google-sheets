@@ -2,7 +2,6 @@ package com.wapitia
 package spreadsheet
 package marshal
 
-import com.wapitia.common.marshal.InMarshal
 import com.wapitia.common.BLDR
 
 import com.wapitia.spreadsheet.marshal.ConfiguredRowMarshal.{BoundedSetFunc,UnboundSetFunc}

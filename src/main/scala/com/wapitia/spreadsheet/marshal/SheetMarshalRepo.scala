@@ -2,17 +2,15 @@ package com.wapitia
 package spreadsheet
 package marshal
 
-import com.wapitia.common.marshal.InMarshal
-
 import com.wapitia.spreadsheet.marshal.ConfiguredRowMarshal.{BoundedSetFunc,UnboundSetFunc}
 
-class CellMarshalLibrary(defaultMarshal: InMarshal[_,_]) extends CellMarshalRepo {
+class CellMarshalLibrary(defaultMarshal: CellMarshal[_]) extends CellMarshalRepo {
   import ConfiguredSheetMarshal._
 
   val cellMarshalByName = scala.collection.mutable.Map[String,CellMarshal[_]]()
 
   override def getCellMarshal[C](name: String): CellMarshal[C] = {
-    cellMarshalByName.getOrElse(name, defaultMarshal).asInstanceOf[InMarshal[Any,C]]
+    cellMarshalByName.getOrElse(name, defaultMarshal).asInstanceOf[CellMarshal[C]]
   }
 
   def addCellMarshal[C](name: String, cellMarshal: CellMarshal[C]) {
@@ -51,13 +49,13 @@ extends MarshalSetRepo[A,M] {
 
 object SheetMarshalRepo {
 
-  val MarshalIdentity = new InMarshal[Any,Any] {
+  val MarshalIdentity = new CellMarshal[Any] {
     override def unmarshal(v: Any) = v
   }
 
   def NOOP[MR,CT](msh: MR, n: String, v: CT) {}
 
-  def makeCellMarshalLibrary(defaultMarshal: InMarshal[_,_]): CellMarshalLibrary =
+  def makeCellMarshalLibrary(defaultMarshal: CellMarshal[_]): CellMarshalLibrary =
     new CellMarshalLibrary(defaultMarshal)
 
   def makeSetFuncLibrary[A,M <: RowMarshal[A]](defaultFunc: UnboundSetFunc[A,M,_]): SetFuncLibrary[A,M] =
@@ -72,7 +70,7 @@ object SheetMarshalRepo {
   def makeDefaultSetFuncLibrary[A,M <: RowMarshal[A]]() =
     makeSetFuncLibrary[A,M](NOOP[M,Any])
 
-  def makeMarshalChainLibrary[A,M <: RowMarshal[A]](defaultMarshal: InMarshal[_,_], defaultFunc: UnboundSetFunc[A,M,_]): MarshalChainLibrary[A,M] =
+  def makeMarshalChainLibrary[A,M <: RowMarshal[A]](defaultMarshal: CellMarshal[_], defaultFunc: UnboundSetFunc[A,M,_]): MarshalChainLibrary[A,M] =
     makeMarshalChainLibrary[A,M](makeCellMarshalLibrary(defaultMarshal), makeSetFuncLibrary[A,M](defaultFunc))
 
   def makeDefaultMarshalChainLibrary[A,M <: RowMarshal[A]]() =

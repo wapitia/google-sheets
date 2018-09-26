@@ -1,7 +1,5 @@
 package com.wapitia.spreadsheet.marshal
 
-import com.wapitia.common.marshal.InMarshal
-
 /** Accumulator and Builder for each row of data in the spreadsheet */
 abstract class RowMarshal[A] {
 

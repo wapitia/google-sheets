@@ -7,7 +7,6 @@ import java.time.LocalDate
 import com.wapitia.calendar.Cycle
 import com.wapitia.calendar.CycleMarshaller
 import com.wapitia.financial.TransactionTemplate
-import com.wapitia.common.marshal.InMarshal
 import com.wapitia.spreadsheet.marshal.{intMarshal => intoInt}
 import com.wapitia.spreadsheet.marshal.{boolMarshal => intoBool}
 import com.wapitia.spreadsheet.marshal.{simpleStringMarshal => intoString}
