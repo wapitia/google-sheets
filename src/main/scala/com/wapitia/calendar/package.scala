@@ -21,7 +21,7 @@ package object calendar {
   assert(Epoch == LocalDate.ofEpochDay(0L))
 
   /** A Thursday */
-  val EpochDayOfWeek = Epoch.getDayOfWeek
+  val EpochDayOfWeek: DayOfWeek = Epoch.getDayOfWeek
 
   /** Number of days per week which is 7 */
   val DaysPerWeek = DayOfWeek.values().length
@@ -32,7 +32,7 @@ package object calendar {
   assume(MonthsPerYear == 12)
 
   /** Number of days in a 400 year cycle.
-   *  Matches the (private) LocalDate.DAYS_PER_CYCLE
+   *  Matches (private) LocalDate.DAYS_PER_CYCLE
    */
   val DaysPer400Years = 146097
 
@@ -40,19 +40,21 @@ package object calendar {
    *  Accounts for leap years according to the
    *  [[http://www.wolframalpha.com/input/?i=leap+year+criteria leap year calculation]].
    *  The year is divisible by 4 and not divisible by 100 or the year is divisible by 400
-   *  Works out to be 365.2425
+   *  Works out to 365.2425
    */
   val DaysPerYear: Double = DaysPer400Years.toDouble / 400.0
 
-  /** An "exact" average number of days per month. Works out to be 30.436875 */
+  /** An "exact" average number of days per month. Works out to 30.436875 */
   val DaysPerMonth: Double = DaysPer400Years.toDouble / (400.0 * MonthsPerYear.toDouble)
 
-  // verify that the underlying date holder `java.time.LocalDate` can handle 9 digit years
+  // ensure that the underlying date holder `java.time.LocalDate` can handle 9 digit years,
+  // so that the implicit String to Date conversion will behave correctly.
   private val SupportedYearDigits = Math.log10((java.time.Year.MAX_VALUE+1).toDouble).toInt
   assume(SupportedYearDigits >= 9)
 
   /** Only strict canonical date string patterns of the form "yyyy-mm-dd"
-   *  are allowed, where "yyyy" is a year in the range "0000" to "999999999".
+   *  are allowed in the implicit conversion from `String` to `LocalDate`,
+   *  where "yyyy" is a year in the range "0000" to "999999999".
    */
   val LocalDatePattern: Regex = "^([0-9]{4,9})\\-(1[0-2]|0[1-9])\\-(3[01]|[12][0-9]|0[1-9])$"
     .r("year","month","day")
@@ -63,9 +65,9 @@ package object calendar {
    *  This is made implicit since local data conversions are common in the `com.wapitia.calendar` client code,
    *  and shouldn't be confused with other strings in the code.
    */
-  implicit def toDate(s: String) = {
-    require(LocalDatePattern.findFirstIn(s).isDefined, s"Not a valid date string: '$s'")
-    LocalDate.parse(s)
+  implicit def toDate(dateStr: String): LocalDate = {
+    require(LocalDatePattern.findFirstIn(dateStr).isDefined, s"Not a valid date string: '$dateStr'")
+    LocalDate.parse(dateStr)
   }
 
 }

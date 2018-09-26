@@ -3,14 +3,15 @@ package financial
 
 import java.time.LocalDate
 import com.wapitia.calendar.Cycle
+import com.wapitia.common.BLDR
 
 /**
  * A transaction template defines a transfer of cash from a source account
  * to a target account.
  * The template does not define a particular start date, but does
  * have slots to describe its cycle offset and an optional final payment date.
- * A specific transaction combines an actual date with the information from
- * this template.
+ * A specific `Transaction` instance is made from a combination of an actual
+ * date and this TransactionTemplate.
  */
 case class TransactionTemplate(
     item: String,
@@ -71,7 +72,8 @@ object TransactionTemplate {
       pmtMethodOpt: Option[String],
       catNDaysOpt: Option[Int],
       catNMonthsOpt: Option[Int],
-      ensurePositive: Boolean) {
+      ensurePositive: Boolean)
+  extends BLDR[TransactionTemplate] {
 
     def item(itm: String) = new Builder(Some(itm), nextTransOpt,
       amountOpt, cycleOpt, cycleRefDateOpt, maxOpt, lastPmtDateOpt,
@@ -143,7 +145,7 @@ object TransactionTemplate {
         variableOpt, sourceOpt, targetOpt, pmtMethodOpt, catNDaysOpt,
         catNMonthsOpt, true)
 
-    def build() = {
+    override def build(): TransactionTemplate = {
       val amount: BigDecimal = amountOpt.getOrElse(throw new RuntimeException("Missing Transaction Amount"))
       val source: Account = sourceOpt.getOrElse(Account.UnknownAccount)
       val target: Account = targetOpt.getOrElse(Account.UnknownAccount)

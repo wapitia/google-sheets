@@ -23,10 +23,8 @@ class KeyedPropertiesTest {
     val fo: File = new File("target/testResults/KeyPropertiesTest/testKeyedPropsOut.xml")
     val par = fo.getParentFile()
     val created = par.mkdirs()
-    println(s"created? $created")
     val fos: FileOutputStream = new FileOutputStream(fo)
     props.storeToXML(fos, "my comment\nMore comments")
-    println(props)
   }
 
   def getLicencePolicy(keyProps: KeyedProperties, whichState: Option[String]): Option[String] = {

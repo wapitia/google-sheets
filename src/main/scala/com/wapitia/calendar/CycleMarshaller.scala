@@ -6,10 +6,10 @@ package calendar
  *
  *  @usage
  *  {{{
- *     addCellMarshaller("Payment Cycle", CycleKindMarshaller.Into)
+ *     addCellMarshaller("Payment Cycle", CycleMarshaller.Into)
  *  }}}
  */
 object CycleMarshaller extends com.wapitia.common.marshal.EnumMarshallerTemplate {
   override type EnumType = Cycle
-  override def enumValueMap = Cycle.enumValueNamed
+  override def enumValueNamed = Cycle.enumValueNamed
 }

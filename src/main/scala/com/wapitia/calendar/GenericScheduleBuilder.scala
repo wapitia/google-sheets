@@ -1,23 +1,13 @@
 package com.wapitia
 package calendar
 
-trait GenericScheduleBuilder
+import java.time.LocalDate
+import scala.collection.BitSet
 
-/** Build a schedule of any kind using a Generic overlay on the concrete schedule types. */
-// TODO
-object ScheduleFactory {
+trait GenericScheduleBuilder {
 
-  import CycleKind._
+  /** offset in days from normal cycle anchor date */
+  def offset(offs: Int): GenericScheduleBuilder
 
-  def builder(cycleKind: Cycle): GenericScheduleBuilder = cycleKind.kind match {
-    case DayLike => new GenericDailyScheduleBuilder(cycleKind)
-    case MonthLike => new GenericMonthlyScheduleBuilder(cycleKind)
-  }
-
-  class GenericDailyScheduleBuilder(ck: Cycle) extends DailySchedule.Builder(DailyCycle(ck.cycleSize, 0), None) with GenericScheduleBuilder {
-  }
-
-  class GenericMonthlyScheduleBuilder(ck: Cycle) extends MonthlySchedule.Builder(None, None, MonthlyCycle.builder().cycleSize(ck.cycleSize).offset(0)) with GenericScheduleBuilder {
-  }
-
+  def build(): Schedule
 }

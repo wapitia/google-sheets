@@ -94,5 +94,4 @@ object MonthlyCycle {
    */
   def cycleMonthIndex(monthCycle: Int, monthOffset: Int, targetDate: LocalDate): Int =
     MonthlyCycle(monthCycle, monthOffset).cycleMonth(targetDate)
-
 }

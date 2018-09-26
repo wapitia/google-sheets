@@ -21,7 +21,7 @@ package marshal
  *  @tparam ValueType incoming contravariant value, usually some String.
  *  @tparam BoundType more elaborately-typed output variable.
  */
-trait InMarshal[ValueType,+BoundType] {
+trait InMarshal[-ValueType,+BoundType] {
 
   /** Return true if the value is null rather than the bound type.
    *  Many cell values don't have the concept of null, and so this

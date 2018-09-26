@@ -20,6 +20,7 @@ class SimpleNumberMarshal extends InMarshal[Any,BigDecimal] {
 trait Nullable {
 
   def isNull(v: Any): Boolean = v match {
+    case null => true
     case s: String if s.isEmpty() => true
     case _  => false
   }
@@ -30,6 +31,7 @@ trait Nullable {
 class NullableNumberMarshal extends SimpleNumberMarshal {
 
   override def isNull(v: Any): Boolean = v match {
+    case null => true
     case s: String if s.isEmpty() => true
     case _  => false
   }

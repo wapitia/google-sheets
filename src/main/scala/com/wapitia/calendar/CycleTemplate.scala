@@ -31,9 +31,17 @@ abstract class CycleBuilder[A <: CycleTemplate,B <: CycleBuilder[A,B]](
    */
   def offset(offset: Int): B = builder(cycleSizeOpt, Some(offset), cycleSizeDefault)
 
-  def set(cycle: A): B = builder(Some(cycle.cycleSize), Some(cycle.offset), cycleSizeDefault)
+  /** Overwrite both the cycleSize and offset options with the values of the given other cycle.
+   *  The cycleSizeDefault is not changed.
+   */
+  def cycle(cycle: A): B = builder(Some(cycle.cycleSize), Some(cycle.offset), cycleSizeDefault)
 
-  /** Create and return a Cycle instance */
+  /** Set the cycleSizeDefault */
+  def sizeDefault(szDef: => Int) = builder(cycleSizeOpt, offsetOpt, szDef)
+
+  /** Make and return a `Cycle` instance. If the `cycleSize` is not defined, `cycleSizeDefault` is assumed.
+   *  If `offset` is not defined, assume zero.
+   */
   def build(): A = {
     val cycleSize: Int = cycleSizeOpt.getOrElse(cycleSizeDefault)
     val offset: Int = offsetOpt.getOrElse(0)

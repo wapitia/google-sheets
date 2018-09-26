@@ -25,20 +25,20 @@ class SimpleDateMarshal extends InMarshal[Any,LocalDate] {
    *  @throws(classOf[SpreadsheetMarshalException])
    */
   override def unmarshal(cell: Any): LocalDate = cell match {
-    case l: Long                 => unmarshalEpochDay(l)
-    case n: java.math.BigDecimal => unmarshalEpochDay(n.longValue)
-    case n: scala.math.BigDecimal => unmarshalEpochDay(n.longValue)
+    case lng: Long                 => dateOfEpochDay(lng)
+    case jbd: java.math.BigDecimal => dateOfEpochDay(jbd.longValue)
+    case bd: scala.math.BigDecimal => dateOfEpochDay(bd.longValue)
     case _  => throw new SpreadsheetMarshalException("unparsable date %s: %s".format(cell, cell.getClass))
   }
-
 }
 
 /** A `SimpleDateMarshal` that also accepts an empty string as its cell value to indicate `null`.
  */
 class NullableDateMarshal extends SimpleDateMarshal {
 
-  /** true iff the cell value is an empty `String` */
+  /** true iff the cell value is null or an empty `String` */
   override def isNull(cell: Any): Boolean = cell match {
+    case null                     => true
     case s: String if s.isEmpty() => true
     case _                        => false
   }
@@ -53,13 +53,8 @@ object GSheetsDateMarshaller {
   /** NullableDateMarshal singleton may be shared as it is immutable and thread safe. */
   val nullableMarshal: InMarshal[Any,LocalDate] = new NullableDateMarshal
 
-  /** The date by which the Google Sheets data and time BigDecimals are relative.
-   *  This according to e.g. https://en.wikipedia.org/wiki/Epoch_(reference_date)#1899-12-30
-   */
-  val GoogleSheetsEpoch = LocalDate.of(1899, 12, 30)
-
-  /** The number of days between Google sheets and java time epochs.
-   *  Works out to be 25569 days.
+  /** The number of days between Google sheets and java time epochs, 1899-12-30 vs. 1970-01-01
+   *  Works out to 25569 days.
    */
   val JavaVsGoogleDay0Diff: Long =
     ChronoUnit.DAYS.between(GoogleSheetsEpoch, com.wapitia.calendar.Epoch)
@@ -67,10 +62,18 @@ object GSheetsDateMarshaller {
   /** Convert into a `LocalDate` the value of a Google Sheets date,
    *  an integer number of days relative to the `GoogleSheetsEpoch`.
    */
-  def unmarshalEpochDay(googleSheetsDay: Long): java.time.LocalDate = {
-    val epochday: Long = googleSheetsDay - JavaVsGoogleDay0Diff
-    val res = java.time.LocalDate.ofEpochDay(epochday)
-    res
-  }
+  def dateOfEpochDay(googleEpochDay: Long): LocalDate =
+    LocalDate.ofEpochDay(googleToCalendarEpoch(googleEpochDay))
+
+  /** Convert from google Epoch day to java epoch day. */
+  def googleToCalendarEpoch(googleEpochDay: Long): Long =
+    googleEpochDay - JavaVsGoogleDay0Diff
+
+  /** Convert a wapitia calendar date (a java.time.LocalDate) into the
+   *  google epoch (1899-12-30), the BigDecimal value
+   *  of which is the way in which dates are represented in Google Sheets.
+   */
+  def toGoogleEpochDay(date: LocalDate): Long =
+    date.toEpochDay() + JavaVsGoogleDay0Diff
 
 }
