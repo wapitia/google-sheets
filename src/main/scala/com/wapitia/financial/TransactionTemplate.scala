@@ -3,6 +3,7 @@ package financial
 
 import java.time.LocalDate
 import com.wapitia.calendar.Cycle
+import com.wapitia.common.ImmutableBuilder
 
 /**
  * A transaction template defines a transfer of cash from a source account
@@ -71,7 +72,8 @@ object TransactionTemplate {
       pmtMethodOpt: Option[String],
       catNDaysOpt: Option[Int],
       catNMonthsOpt: Option[Int],
-      ensurePositive: Boolean) {
+      ensurePositive: Boolean)
+  extends ImmutableBuilder[TransactionTemplate] {
 
     def item(itm: String) = new Builder(Some(itm), nextTransOpt,
       amountOpt, cycleOpt, cycleRefDateOpt, maxOpt, lastPmtDateOpt,
@@ -143,7 +145,7 @@ object TransactionTemplate {
         variableOpt, sourceOpt, targetOpt, pmtMethodOpt, catNDaysOpt,
         catNMonthsOpt, true)
 
-    def build() = {
+    override def build(): TransactionTemplate = {
       val amount: BigDecimal = amountOpt.getOrElse(throw new RuntimeException("Missing Transaction Amount"))
       val source: Account = sourceOpt.getOrElse(Account.UnknownAccount)
       val target: Account = targetOpt.getOrElse(Account.UnknownAccount)

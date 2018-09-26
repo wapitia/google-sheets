@@ -51,9 +51,9 @@ class SpreadsheetXmlTest {
 
     val samp = AcctMockSample
 
-    val accum: RowDocElementAccumulator = new RowDocElementAccumulator()
-    val rowBuilder = new AcctMockMarshallerAsElement(accum)
-    val rdr = SimpleSheetReader[Element](rowBuilder)
+    val accum: RowDocElementAccumulator = new RowDocElementAccumulator("container","item")
+    val sheetMarshaller = new AcctMockMarshallerAsElement(accum)
+    val rdr = SimpleSheetReader[Element](sheetMarshaller)
     rdr.read(samp.sampleSheet, accum)
     val items: Element = accum.results
     val sw = new StringWriter()

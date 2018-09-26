@@ -132,7 +132,7 @@ class SimpleSheetAccumulator[A](rdr: SimpleSheetReader[A], acc: RowAccumulator[A
         // pair up each header name with the corresponding data cell
         // and marshal that name/value pair into the rowMarshaller, which
         // is building the resultant output object.
-        header.zip(row).foreach { case (title, cell) => rowMarshaller.set(title, cell) }
+        header.zip(row).foreach { case (title, cell) => rowMarshaller.setRaw(title, cell) }
         // then make an object for each row, the sequence of which is the result
         rowMarshaller.make()
       }

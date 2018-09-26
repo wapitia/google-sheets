@@ -11,63 +11,53 @@ import com.wapitia.common.marshal.InMarshal
 import com.wapitia.spreadsheet.marshal.{intMarshal,boolMarshal,simpleStringMarshal,nullableCurrencyMarshal,LabelledSheetMarshal}
 import com.wapitia.gsheets.marshal.nullableDateMarshal
 import com.wapitia.spreadsheet.marshal.RowMarshal
+import com.wapitia.spreadsheet.marshal.SetterRepo
+import com.wapitia.spreadsheet.marshal.CellMarshalRepo
+import com.wapitia.spreadsheet.marshal.ConfiguredRowMarshal
+import com.wapitia.spreadsheet.marshal.ConfiguredRowBuilder
 
-/**
- * Tool for translating a spreadsheet containing rows of financial transaction template data
- * into an ordered list of `TransactionTemplate`s.
+class RowBuilder(cellMarshalRepo: CellMarshalRepo, setterRepo: SetterRepo[TransactionTemplate,RowBuilder])
+extends ConfiguredRowBuilder[TransactionTemplate,RowBuilder,TransactionTemplate.Builder](cellMarshalRepo, setterRepo, TransactionTemplate.builder _)
+
+/** Tool for translating a spreadsheet containing rows of financial transaction template data
+ *  into an ordered list of `TransactionTemplate`s.
  */
 class TransactionTemplateMarshaller extends LabelledSheetMarshal[TransactionTemplate]  {
 
-  class RowBuilder(parent: TransactionTemplateMarshaller) extends RowMarshal[TransactionTemplate](parent) {
-    var rb: TransactionTemplate.Builder = TransactionTemplate.builder()
-    override def make(): TransactionTemplate = rb.build()
-  }
+  import com.wapitia.spreadsheet.marshal.LabelledSheetMarshal._
+
+  type RM = RowBuilder
 
   private[this] def init() {
-    val intoDate = nullableDateMarshal.asInstanceOf[InMarshal[Any,LocalDate]]
-    val intoString = simpleStringMarshal
-    val intoCurrency = nullableCurrencyMarshal
-    val intoBool = boolMarshal
-    val intoInt = intMarshal
-    val intoCycle = CycleMarshaller.Into
-
-    val marshalItem = (m: RowBuilder, name: String, str: String) =>
-      m.rb = m.rb.item(str)
-
-    val marshalNextTrans = (m: RowBuilder, name: String, date: LocalDate) =>
-      m.rb = m.rb.nextTrans(date)
-
-//    marshalChain("Item",             intoString, (m: RowBuilder, name: String, str: String) => m.rb = m.rb.item(str) )
-    marshalChain("Item", intoString, (m: RowBuilder, name: String, str: String) =>
+    marshalChain("Item", simpleStringMarshal, (m: RM, name: String, str: String) =>
       m.rb = m.rb.item(str) )
-    marshalChain("Next Transaction", intoDate, (m: RowBuilder, name: String, date: LocalDate) =>
+    marshalChain("Next Transaction", nullableDateMarshal, (m: RM, name: String, date: LocalDate) =>
       m.rb = m.rb.nextTrans(date) )
-    marshalChain("Amount", intoCurrency, (m: RowBuilder, name: String, currency: BigDecimal) =>
+    marshalChain("Amount", nullableCurrencyMarshal, (m: RM, name: String, currency: BigDecimal) =>
       m.rb = m.rb.amount(currency) )
-    marshalChain("Cycle", intoCycle, (m: RowBuilder, name: String, v: Cycle) =>
+    marshalChain("Cycle", CycleMarshaller.Into, (m: RM, name: String, v: Cycle) =>
       m.rb = m.rb.cycleKind(v) )
-    marshalChain("CycleRefDate",   intoDate, (m: RowBuilder, name: String, date: LocalDate) =>
+    marshalChain("CycleRefDate", nullableDateMarshal, (m: RM, name: String, date: LocalDate) =>
       m.rb = m.rb.cycleRefDate(date) )
-    marshalChain("Max", intoCurrency, (m: RowBuilder, name: String, currency: BigDecimal) =>
+    marshalChain("Max", nullableCurrencyMarshal, (m: RM, name: String, currency: BigDecimal) =>
       m.rb = m.rb.max(currency) )
-    marshalChain("Last Pmt Date",  intoDate, (m: RowBuilder, name: String, date: LocalDate) =>
+    marshalChain("Last Pmt Date", nullableDateMarshal, (m: RM, name: String, date: LocalDate) =>
       m.rb = m.rb.lastPmtDate(date) )
-    marshalChain("Variable",  intoBool, (m: RowBuilder, name: String, bool: Boolean) =>
+    marshalChain("Variable",  boolMarshal, (m: RM, name: String, bool: Boolean) =>
       m.rb = m.rb.variable(bool) )
-    marshalChain("Source", intoString, (m: RowBuilder, name: String, str: String) =>
+    marshalChain("Source", simpleStringMarshal, (m: RM, name: String, str: String) =>
       m.rb = m.rb.source(Account(str)) )
-    marshalChain("Target", intoString, (m: RowBuilder, name: String, str: String) =>
+    marshalChain("Target", simpleStringMarshal, (m: RM, name: String, str: String) =>
       m.rb = m.rb.target(Account(str)) )
-    marshalChain("Pmt Method", intoString, (m: RowBuilder, name: String, str: String) =>
+    marshalChain("Pmt Method", simpleStringMarshal, (m: RM, name: String, str: String) =>
       m.rb = m.rb.pmtMethod(str) )
-    marshalChain("cat-ndays", intoInt, (m: RowBuilder, name: String, i: Int) =>
+    marshalChain("cat-ndays", intMarshal, (m: RM, name: String, i: Int) =>
       m.rb = m.rb.catNDays(i) )
-    marshalChain("cat-nmonths", intoInt, (m: RowBuilder, name: String, i: Int) =>
+    marshalChain("cat-nmonths", intMarshal, (m: RM, name: String, i: Int) =>
       m.rb = m.rb.catNMonths(i) )
   }
 
   init()
 
-  override def makeRowMarshaller[Any]() = new RowBuilder(this)
-
+  override def makeRowMarshaller() = new RM(cellMarshalRepo, setterRepo)
 }

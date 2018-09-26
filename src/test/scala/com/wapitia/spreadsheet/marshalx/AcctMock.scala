@@ -1,6 +1,8 @@
 package com.wapitia.spreadsheet.marshalx
 
 import java.time.LocalDate
+
+import com.wapitia.common.ImmutableBuilder
 import com.wapitia.calendar.Cycle
 import com.wapitia.spreadsheet.marshal.GSColumn
 
@@ -11,7 +13,8 @@ object AcctMock {
   def builder() = new Builder(None, None, None, None, None)
 
   class Builder(acctNameOpt: Option[String], cycleOpt: Option[Cycle],
-      dateOpt: Option[LocalDate], ageOpt: Option[Int], incomeOpt: Option[BigDecimal]) {
+      dateOpt: Option[LocalDate], ageOpt: Option[Int], incomeOpt: Option[BigDecimal])
+  extends ImmutableBuilder[AcctMock] {
 
     @GSColumn("Acct")
     def acctName(acctName: String) =
@@ -33,7 +36,7 @@ object AcctMock {
     def income(income: BigDecimal) =
       new Builder(acctNameOpt, cycleOpt, dateOpt, ageOpt, Some(income))
 
-    def build() = new AcctMock(
+    override def build(): AcctMock = new AcctMock(
         acctNameOpt.getOrElse(throw new RuntimeException("Missing Account Name!")),
         cycleOpt.getOrElse(throw new RuntimeException("Missing Cycle!")),
         dateOpt.getOrElse(LocalDate.MIN),
