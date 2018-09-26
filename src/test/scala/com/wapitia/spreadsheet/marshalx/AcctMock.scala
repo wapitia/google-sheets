@@ -2,7 +2,7 @@ package com.wapitia.spreadsheet.marshalx
 
 import java.time.LocalDate
 
-import com.wapitia.common.ImmutableBuilder
+import com.wapitia.common.BLDR
 import com.wapitia.calendar.Cycle
 import com.wapitia.spreadsheet.marshal.GSColumn
 
@@ -14,7 +14,7 @@ object AcctMock {
 
   class Builder(acctNameOpt: Option[String], cycleOpt: Option[Cycle],
       dateOpt: Option[LocalDate], ageOpt: Option[Int], incomeOpt: Option[BigDecimal])
-  extends ImmutableBuilder[AcctMock] {
+  extends BLDR[AcctMock] {
 
     @GSColumn("Acct")
     def acctName(acctName: String) =

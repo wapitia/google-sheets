@@ -69,7 +69,7 @@ class SimpleSheetReader[A](
     val headerFilter: RowFilter,
     val dataRowFilter: RowFilter,
     val keepGoing: RowFilter,
-    val sheetMarshal: LabelledSheetMarshal[A])
+    val sheetMarshal: ConfiguredSheetMarshal[A])
   extends SheetReader[A] {
 
   /**
@@ -169,16 +169,16 @@ object SimpleSheetReader {
       headerFilter: RowFilter,
       dataRowFilter: RowFilter,
       keepGoing: RowFilter,
-      rowBuilder: LabelledSheetMarshal[A]): SimpleSheetReader[A] =
+      rowBuilder: ConfiguredSheetMarshal[A]): SimpleSheetReader[A] =
     new SimpleSheetReader(headerFilter, dataRowFilter, keepGoing, rowBuilder)
 
   /** Create a new `SimpleSheetReader` with the given `rowBuilder` instance,
    *  using `isNonEmptyRow` instances for `headerFilter` and `dataRowFilter`.
    */
-  def apply[A](rowBuilder: LabelledSheetMarshal[A]): SimpleSheetReader[A] =
+  def apply[A](rowBuilder: ConfiguredSheetMarshal[A]): SimpleSheetReader[A] =
     new SimpleSheetReader(isNonEmptyRow, isNonEmptyRow, neverStop, rowBuilder)
 
-  def seqRead[A](values: List[SheetRow], rowBuilder: LabelledSheetMarshal[A]): Seq[A] = {
+  def seqRead[A](values: List[SheetRow], rowBuilder: ConfiguredSheetMarshal[A]): Seq[A] = {
     val rdr = SimpleSheetReader[A](rowBuilder)
     val accum: SeqRowAccumulator[A] = makeSeqRowAccumulator[A]()
     rdr.read(values, accum)

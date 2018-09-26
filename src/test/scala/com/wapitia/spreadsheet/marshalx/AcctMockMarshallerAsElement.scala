@@ -4,9 +4,8 @@ import java.time.LocalDate
 import org.w3c.dom.{Document, Element}
 import javax.xml.parsers.{DocumentBuilderFactory, DocumentBuilder}
 
-import com.wapitia.spreadsheet.marshal.{RowMarshal, RowAccumulator, LabelledSheetMarshal}
+import com.wapitia.spreadsheet.marshal.{RowMarshal, RowAccumulator, CellMarshalRepo, ConfiguredSheetMarshal}
 import com.wapitia.gsheets.marshal.nullableDateMarshal
-import com.wapitia.spreadsheet.marshal.CellMarshalRepo
 
 /** Accumulates generated objects coming from each data row of a spreadsheet.
  *  @tparam A Type of element that has been marshalled from a spreadsheet row.
@@ -32,7 +31,7 @@ class RowDocElementAccumulator(containerEltName: String, itemEltName: String) ex
 
 class ERowBldr(cellMarshalRepo: CellMarshalRepo, containerBldr: RowDocElementAccumulator) extends RowMarshal[Element] {
 
-  import com.wapitia.spreadsheet.marshal.LabelledSheetMarshal._
+  import com.wapitia.spreadsheet.marshal.RowMarshal._
 
   val resultElt: Element = containerBldr.newResultElement()
 
@@ -55,12 +54,11 @@ class ERowBldr(cellMarshalRepo: CellMarshalRepo, containerBldr: RowDocElementAcc
   }
 }
 
-abstract class MarshallerToElement(containerBldr: RowDocElementAccumulator) extends LabelledSheetMarshal[Element] {
+abstract class MarshallerToElement(containerBldr: RowDocElementAccumulator) extends ConfiguredSheetMarshal[Element] {
 
 }
 
-/**
- * Test for marshalling a google spreadsheet's data into a mock Acct instance
+/**  Test for marshalling a google spreadsheet's data into a mock Acct instance
  */
 class AcctMockMarshallerAsElement(containerBldr: RowDocElementAccumulator) extends MarshallerToElement(containerBldr) {
 
@@ -73,5 +71,5 @@ class AcctMockMarshallerAsElement(containerBldr: RowDocElementAccumulator) exten
 
   init()
 
-  override def makeRowMarshaller() = new ERowBldr(cellMarshalRepo, containerBldr)
+  override def makeRowMarshaller() = new ERowBldr(marshalChainRepo.repoCellMarshal, containerBldr)
 }

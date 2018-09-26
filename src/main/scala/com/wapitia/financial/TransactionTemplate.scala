@@ -3,7 +3,7 @@ package financial
 
 import java.time.LocalDate
 import com.wapitia.calendar.Cycle
-import com.wapitia.common.ImmutableBuilder
+import com.wapitia.common.BLDR
 
 /**
  * A transaction template defines a transfer of cash from a source account
@@ -73,7 +73,7 @@ object TransactionTemplate {
       catNDaysOpt: Option[Int],
       catNMonthsOpt: Option[Int],
       ensurePositive: Boolean)
-  extends ImmutableBuilder[TransactionTemplate] {
+  extends BLDR[TransactionTemplate] {
 
     def item(itm: String) = new Builder(Some(itm), nextTransOpt,
       amountOpt, cycleOpt, cycleRefDateOpt, maxOpt, lastPmtDateOpt,
