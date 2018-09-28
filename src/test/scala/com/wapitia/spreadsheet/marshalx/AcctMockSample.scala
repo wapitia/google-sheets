@@ -25,8 +25,8 @@ object AcctMockSample {
   )
 
   val expectedSheet: List[String] = List(
-    "AcctMock(Acct-1,Monthly,2006-08-28,32,Some(35000.0))",
-    "AcctMock(Acct-2,BiWeekly,2006-10-07,14,Some(14500.0))"
+    "AcctMock(Acct-1,Monthly,2006-08-28,32,List(35000.0))",
+    "AcctMock(Acct-2,BiWeekly,2006-10-07,14,List(14500.0))"
   )
 
 }

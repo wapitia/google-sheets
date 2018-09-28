@@ -20,7 +20,7 @@ class AcctMockMarshaller extends ConfiguredSheetMarshal[AcctMock]  {
   import com.wapitia.spreadsheet.marshal.ConfiguredSheetMarshal._
 
   class RowBuilder(mcRepo: MarshalSetRepo[AcctMock,RowBuilder])
-  extends ConfiguredRowBuilder[AcctMock,RowBuilder,AcctMock.Builder](mcRepo, AcctMock.builder())
+  extends ConfiguredRowBuilder[AcctMock,RowBuilder,AcctMock.Builder](mcRepo, AcctMock.builder(), (a: String) => a)
 
   type RM = RowBuilder
 
@@ -35,7 +35,7 @@ class AcctMockMarshaller extends ConfiguredSheetMarshal[AcctMock]  {
     marshalChain("Age", intoInt,
       (m: RM, name: String, a: Int) => m.rb = m.rb.age(a))
     marshalChain("Income", intoCurrency,
-      (m: RM, name: String, currency: BigDecimal) => m.rb = m.rb.income(currency))
+      (m: RM, name: String, income: BigDecimal) => m.rb = m.rb.addIncome(income))
   }
 
   init()

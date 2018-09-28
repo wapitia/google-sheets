@@ -23,11 +23,12 @@ class TransactionTemplateMarshaller extends ConfiguredSheetMarshal[TransactionTe
   import com.wapitia.spreadsheet.marshal.ConfiguredSheetMarshal._
 
   class RowBuilder(mcRepo: MarshalSetRepo[TransactionTemplate,RowBuilder])
-  extends ConfiguredRowBuilder[TransactionTemplate,RowBuilder,TransactionTemplate.Builder](mcRepo, TransactionTemplate.builder())
+  extends ConfiguredRowBuilder[TransactionTemplate,RowBuilder,TransactionTemplate.Builder](mcRepo, TransactionTemplate.builder(), (a: String) => a)
 
   type RM = RowBuilder
 
   private[this] def init() {
+
     marshalChain("Item", intoString, (m: RM, name: String, str: String) => m.rb = m.rb.item(str) )
     marshalChain("Next Transaction", intoDate, (m: RM, name: String, date: LocalDate) => m.rb = m.rb.nextTrans(date) )
     marshalChain("Amount", intoCurrency, (m: RM, name: String, currency: BigDecimal) => m.rb = m.rb.amount(currency) )

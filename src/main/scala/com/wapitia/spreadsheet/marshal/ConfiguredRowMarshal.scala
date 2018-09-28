@@ -21,7 +21,7 @@ trait MarshalSetRepo[A,M <: RowMarshal[A]] {
   def repoSetFunc: SetFuncRepo[A,M]
 }
 
-abstract class ConfiguredRowMarshal[A,M <: ConfiguredRowMarshal[A,M]](mcRepo: MarshalSetRepo[A,M]) extends RowMarshal[A] {
+abstract class ConfiguredRowMarshal[A,M <: ConfiguredRowMarshal[A,M]](mcRepo: MarshalSetRepo[A,M], marshalColumnName: String => String) extends RowMarshal[A](marshalColumnName) {
 
   import ConfiguredRowMarshal._
 

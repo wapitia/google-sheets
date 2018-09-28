@@ -32,7 +32,7 @@ class KeyedPropertiesTest {
     keyProps.getKeyedProperty(subMap, "dmv.${state}.licence.policy")
   }
 
-  @Ignore // WIP @Test
+  @Test @Ignore // WIP @Test
   def testLP() {
     val accessClass: Class[_ <: KeyedPropertiesTest.type] = KeyedPropertiesTest.getClass
 
