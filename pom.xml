@@ -36,6 +36,11 @@
   </properties>
   <dependencies>
     <dependency>
+    	<groupId>com.wapitia</groupId>
+    	<artifactId>java-common</artifactId>
+    	<version>0.0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
       <groupId>com.google.api-client</groupId>
       <artifactId>google-api-client</artifactId>
       <version>${google-api-client-version}</version>
@@ -79,6 +84,7 @@
       <scope>test</scope>
     </dependency>
      -->
+    
   </dependencies>
   <build>
     <plugins>
